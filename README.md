@@ -4,6 +4,7 @@ This repository contains:
 - `paper/`: LaTeX sources for the paper.
 - `code/`: Python simulation + artifact-generation pipeline.
 - `paper_artifacts/`: Generated figures, tables, and run-level outputs referenced by the LaTeX sources.
+- `paper.pdf`: Prebuilt PDF (for convenience).
 
 ## Quickstart (rebuild paper artifacts)
 
@@ -35,4 +36,3 @@ bibtex ieee_main
 pdflatex ieee_main.tex
 pdflatex ieee_main.tex
 ```
-
