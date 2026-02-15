@@ -1,0 +1,45 @@
+\begin{tabular}{p{0.18\linewidth} p{0.27\linewidth} p{0.30\linewidth} p{0.25\linewidth}}
+\toprule
+\textbf{Channel / mechanism} & \textbf{Analytic model (math)} & \textbf{Particle implementation (code)} & \textbf{Alignment / notes} \\
+\midrule
+\textbf{Time convention} &
+Continuous time ($dt$); myopic rule uses infinitesimal scaling. &
+Discrete grid with step $\Delta t$ (baseline $\Delta t=1$). &
+State $\Delta t$ explicitly when translating between $dp_t$ and $\Delta p_{t+1}$. \\
+\addlinespace
+\textbf{Price formation} &
+Anchored impact SDE $dp_t=\kappa(v_t-p_t)\,dt+\lambda\bar x_t\,dt+\phi\,dZ_t$. &
+Euler update $p_{t+1}=p_t+\kappa(v_t-p_t)\Delta t+\lambda\bar x_t\Delta t+\phi\sqrt{\Delta t}\,\varepsilon^\eta_{t+1}$. &
+Aligned up to discretization; $\phi$ is the reduced-form price-noise scale (microstructure sketch: $\phi=\lambda\sigma_\eta$). \\
+\addlinespace
+\textbf{Signal / observation} &
+Flow signal $d\xi_{i,t}=v_t\,dt+\sigma_c\,dU_t+\sigma_\epsilon\,dB_{i,t}$. &
+Normalized increment $z_{i,t}=(\xi_{i,t+\Delta t}-\xi_{i,t})/\Delta t$; for $\Delta t=1$, $z_{i,t}=v_t+\text{noise}$. &
+Aligned; normalization makes the observation noise scale with $1/\sqrt{\Delta t}$. \\
+\addlinespace
+\textbf{Belief state} $(\hat v_{i,t},\Sigma_{i,t})$ &
+Kalman--Bucy filter; $\Sigma$ solves Riccati. &
+Discrete-time Kalman recursion for $(\hat v_{i,t},\Sigma_{i,t})$ (Appendix~A). &
+Aligned at the state level. \\
+\addlinespace
+\textbf{Trading rule (risk term)} &
+Continuous-time myopic CARA uses variance rate $\phi^2$ (drift uncertainty is $O(dt^2)$). &
+One-step mean--variance uses $\Var_{i,t}(\Delta p_{t+1})=\phi^2\Delta t+\kappa^2\Sigma_{i,t}(\Delta t)^2$, hence $\mathrm{Var}^{\mathrm{eff}}_{i,t}=\phi^2+\kappa^2\Sigma_{i,t}\Delta t$ in the denominator. &
+This is the extra $\Sigma$-channel present in the particle rule; it is a discretization-consistent correction. \\
+\addlinespace
+\textbf{Mean-field fixed point} &
+Homogeneous mean-only closure: $\bar x_t$ depends on beliefs only through $m_t-p_t$. &
+Per-step fixed point uses $A_t,B_t$ built from $\gamma\,\mathrm{Var}^{\mathrm{eff}}_{i,t}$; if $\Sigma_{i,t}$ is common across agents it cancels. &
+Homogeneous case stays mean-only; with heterogeneous $k$ (hence heterogeneous $\Sigma$) $\bar x_t$ becomes a weighted mean. \\
+\addlinespace
+\textbf{Information set} &
+Baseline: filtering on private signal only (no price in the filter). &
+Baseline matches; robustness variant adds an implicit noisy price observation. &
+Aligned; document the robustness toggle explicitly. \\
+\addlinespace
+\textbf{Intertemporal hedging} &
+Present in the LQG benchmark (hedging terms via $A_t,B_t$). &
+Main experiments use myopic per-step rule; optional intertemporal correction exists as a separate toggle. &
+Keep benchmark vs experiment distinction explicit. \\
+\bottomrule
+\end{tabular}

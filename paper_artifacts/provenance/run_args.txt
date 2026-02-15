@@ -1,0 +1,7 @@
+config=code\configs\paper_baseline.yaml
+config_md5=930e38108493d9a6beea4518b305653e
+seeds=50
+T=400
+N=200
+outdir=paper\current\paper_artifacts
+sensitivity=True

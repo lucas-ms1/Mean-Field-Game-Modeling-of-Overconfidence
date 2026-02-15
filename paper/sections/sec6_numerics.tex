@@ -1,0 +1,460 @@
+% Section 6: Numerical Examples
+
+\textbf{Design.} We compute summary statistics for the \emph{myopic mean-field consistent dynamics} in Sections~II--IV using a particle approximation: simulate $N$ agents with shared common shocks $(W,U,Z)$ and independent idiosyncratic signal noises $\{B_i\}$, with trading governed by the myopic rule \eqref{eq:myopic_policy} and belief updates given by the Kalman filter in Appendix~A (implemented in discrete time via Euler/Kalman recursions). We report four baseline scenarios:
+(i) bull regime ($\mu_v>0$) with $k=1$,
+(ii) bull regime with $k=3$,
+(iii) bear regime ($\mu_v<0$) with $k=1$,
+(iv) bear regime with $k=3$.
+Each scenario is averaged over $M$ independent random seeds.
+
+\textbf{Implementation.} \ifjeicblind Simulations and plotting are reproducible from the replication package. Link omitted for blind review. \else Simulations and plotting are reproducible from the repository using
+\texttt{code/scripts/}\allowbreak\texttt{build\_paper\_artifacts.py}, which writes run-level CSVs and aggregated figures into \texttt{paper\_artifacts/}. \fi Table~\ref{tab:params} lists the baseline parameters.
+The baseline parameters satisfy the per-step contraction/uniqueness condition $0\le B_t<\Delta t$ (Theorem~\ref{thm:contraction}), uniformly along the simulated path.
+Unless otherwise stated, we use time step $\Delta t=1$; Table~\ref{tab:dt_sensitivity} reports a coarse time-step sensitivity check.
+\textbf{Timing.} Within each discrete step $t\to t+1$ (decision interval $\Delta t$), agents:
+(i) observe their private signal increment (equivalently, the normalized increment $z_{i,t}=(\xi_{i,t+\Delta t}-\xi_{i,t})/\Delta t$) and update $(\hat v_{i,t},\Sigma_{i,t})$;
+(ii) compute the post-trade mean inventory $\bar x_t$ from the closed-form stock--flow fixed point using the pre-trade mean $\bar x_{t^-}=\bar x_{t-1}$ (Proposition~\ref{prop:step_fixed_point});
+(iii) set $\bar u_t=(\bar x_t-\bar x_{t-1})/\Delta t$;
+(iv) compute each agent's post-trade inventory $x^\star_{i,t}$ from the myopic rule given $\bar u_t$ and set $u_{i,t}=(x^\star_{i,t}-x_{i,t^-})/\Delta t$ with $x_{i,t^-}=x_{i,t-1}$;
+(v) update price via flow impact, $\Delta p_{t+1}=\kappa(v_t-p_t)\Delta t+\lambda\bar u_t\Delta t+\phi\sqrt{\Delta t}\,\varepsilon_{t+1}$;
+(vi) update wealth $W_{i,t+1}=W_{i,t}+x^\star_{i,t}\Delta p_{t+1}-(\chi/2)(x^\star_{i,t})^2\Delta t$; and
+(vii) set next pre-trade inventory $x_{i,t+1^-}=x^\star_{i,t}$.
+In the price-augmented robustness variant, agents then incorporate $p_{t+1}$ via the implicit observation in Appendix~A (updating beliefs for time $t+1$). Thus, no future price information is used at decision time.
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{2pt}
+  \renewcommand{\arraystretch}{1.15}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_theory_code_alignment.tex}}
+  \caption{Alignment table: mechanism ``channels'' present in the analytic model versus the particle implementation used in Section~VI.}
+  \label{tab:theory_code_alignment}
+\end{table}
+
+\textbf{Variance-rate diagnostic.}
+In the particle implementation, the effective risk term is $D_{i,t}=\chi+\gamma(\phi^2+\kappa^2\Sigma_{i,t}\Delta t)$ (Proposition~\ref{prop:step_fixed_point}), so the denominator includes the discrete-time correction $\kappa^2\Sigma_{i,t}\Delta t$ coming from belief uncertainty.
+As a scale diagnostic, we track $\rho_{i,t}:=(\kappa^2\Sigma_{i,t}\Delta t)/\phi^2$ (cross-sectional mean over $i$); when $\rho_{i,t}\ll 1$ the discrete-time rule is a small perturbation of the continuous-time mean-only denominator.
+
+\textbf{LQG fixed-point verification (continuous-time demo).}
+As a numerical diagnostic for the constructive LQG solver in Section~\ref{sec:lqg_constructive}, we run \ifjeicblind the LQG demo script (link omitted for blind review)\else \path{code/matlab/mfg_lqg_common_noise_demo.m}\fi with $\Delta t=10^{-3}$ and $N=2000$.
+The Picard fixed point converges in 16 iterations with final relative residual $9.59\times 10^{-7}$.
+Over the time grid, the reported RMS differences between the particle approximation and the limiting paths are:
+$8.52\times 10^{-3}$ for the mean belief $m$, $2.09\times 10^{-3}$ for the price $p$,
+$8.42\times 10^{-3}$ for the mean demand $\bar x$ (position-impact benchmark), and $7.13\times 10^{-3}$ for the disagreement variance benchmark.
+\textbf{Scheme (map form).} Let $S_t=(v_t,p_t,\{(\hat v_{i,t},\Sigma_{i,t},x_{i,t^-})\}_{i=1}^N)$. For fixed shocks (common and idiosyncratic) the algorithm defines a measurable one-step map
+\begin{equation}
+S_{t+1}=\Psi_{\Delta t,N}(S_t;\text{shocks}),
+\end{equation}
+obtained by composing: (a) the Kalman update (Appendix~A), (b) the per-step mean-field fixed point (Theorem~\ref{thm:contraction}), and (c) the Euler updates for $(v,p)$. Under the contraction condition \eqref{eq:global_contraction}, the fixed-point step is stable and the full map is well-defined (Theorem~\ref{thm:well_posed}).
+
+\begin{algorithm}[t]
+\caption{Particle approximation (one scenario)}
+\label{alg:particle}
+\begin{algorithmic}[1]
+\STATE Fix parameters, scenario $(\mu_v,k)$, horizon $T$, population size $N$, and seeds $m=1,\dots,M$.
+\FOR{$m=1$ to $M$}
+  \STATE Simulate one realization of common shocks $(\Delta W_t,\Delta U_t,\Delta Z_t)_{t=0}^{T-1}$.
+  \STATE Initialize $(v_0,p_0)$ and agent beliefs $(\hat v_{i,0},\Sigma_{i,0})$ for $i=1,\dots,N$.
+  \STATE Initialize inventories $x_{i,0^-}$ and wealth $W_{i,0}$ for $i=1,\dots,N$.
+  \FOR{$t=0$ to $T-1$}
+    \STATE For each agent $i$, draw idiosyncratic signal noise $\Delta B_{i,t}$ and update $(\hat v_{i,t},\Sigma_{i,t})$ via the (perceived) Kalman recursion.
+    \STATE Compute $(\bar x_t,\bar u_t)$ from the per-step stock--flow fixed point using pre-trade inventories (Proposition~\ref{prop:step_fixed_point}).
+    \STATE For each agent $i$, set $x_{i,t}=x^\star_{i,t}$ from the myopic rule given $\bar u_t$ and compute trading rate $u_{i,t}=(x_{i,t}-x_{i,t^-})/\Delta t$.
+    \STATE Update $(v_{t+1},p_{t+1})$ using the Euler discretization of \eqref{eq:anchored_impact} (flow-based impact).
+    \STATE Update wealth $W_{i,t+1}=W_{i,t}+x_{i,t}\Delta p_{t+1}-(\chi/2)x_{i,t}^2\Delta t$ and set $x_{i,t+1^-}=x_{i,t}$.
+  \ENDFOR
+  \STATE Record seed-level time series (price, fundamental, returns, mispricing, demand moments).
+\ENDFOR
+\STATE Report scenario figures/tables by averaging statistics across seeds (Monte Carlo over the common and idiosyncratic shocks).
+\end{algorithmic}
+\end{algorithm}
+
+\input{sections/params_table}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_metrics.tex}}
+  \caption{Belief and market moments by scenario (mean $\pm$ 95\% CI across random seeds).}
+  \label{tab:metrics}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_mispricing_persistence.tex}}
+  \caption{Mispricing tails and persistence diagnostics by scenario (mean $\pm$ 95\% CI across random seeds).}
+  \label{tab:mispricing_persistence}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_convergence.tex}}
+  \caption{Particle convergence check in $N$ (Bull $k=1$; mean $\pm$ 95\% CI across paired seeds; reported as differences relative to the largest $N$).}
+  \label{tab:convergence}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_lambda_sensitivity.tex}}
+  \caption{Sensitivity of the $k$-effect to impact strength $\lambda$ (Bull regime; $\Delta$ denotes $k=3$ minus $k=1$; mean $\pm$ 95\% CI across paired seeds).}
+  \label{tab:sensitivity}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_price_filter.tex}}
+  \caption{Robustness to incorporating a noisy price observation in filtering (Bull regime; $\Delta$ denotes $k=3$ minus $k=1$; mean $\pm$ 95\% CI across paired seeds).}
+  \label{tab:price_filter}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_dt_sensitivity.tex}}
+  \caption{Time-step sensitivity (Bull regime; $\Delta$ denotes $k=3$ minus $k=1$; mean $\pm$ 95\% CI across paired seeds).}
+  \label{tab:dt_sensitivity}
+\end{table}
+
+\subsection{Parameter identification and calibration strategy}
+\label{sec:param_identification}
+
+While full empirical estimation is beyond the scope of this paper, we provide an identification argument showing which observable moments pin down the key structural parameters $(\kappa,\lambda,\phi,\sigma_\epsilon,\sigma_v)$ in principle. This clarifies what data would be needed for calibration and establishes the model's testability.
+
+\paragraph{Identification via observable moments.}
+Under the myopic mean-field equilibrium, the following moments are observable (or proxied) from price and volume data:
+
+\begin{enumerate}
+\item \textbf{Return volatility $\mathrm{std}(r_t)$:} In the model, ``return'' is the price increment $r_t := \Delta p_t$ (value units). Empirically one often works with log returns $\Delta\log P_t$; for small moves, $\Delta\log P_t \approx \Delta P_t/P_t$, so a simple scaling can map model increments to empirical log-return units when needed. From \eqref{eq:anchored_impact}, the price increment variance is
+\[
+\Var(\Delta p_{t+1}\mid \mathcal F_t) \approx
+\Big(\kappa^2\,\Var(v_t-p_t\mid \mathcal F_t)+\lambda^2\,\Var(\bar x_t\mid \mathcal F_t)+\phi^2\Big)\Delta t
+\;+\;\text{cross terms},
+\]
+In steady state, $\mathrm{std}(r_t) = \mathrm{std}(\Delta p_t)$ depends on $\phi$ (direct noise trading), $\lambda$ (impact amplification), and $\kappa$ (mean reversion strength). The ratio $\lambda/\kappa$ can be identified from the relative contribution of demand-driven vs.\ fundamental-driven price variance.
+
+\item \textbf{Mean-reversion speed:} The autocorrelation of price deviations from a moving average of fundamentals (or a proxy like a slow-moving average of prices) identifies $\kappa$. Specifically, under \eqref{eq:anchored_impact}, the half-life of price deviations is approximately $(\ln 2)/\kappa$, so $\kappa$ can be estimated from the decay rate of price-f fundamental autocorrelations.
+\begin{equation}
+h = \frac{\ln 2}{\kappa},\qquad \kappa = \frac{\ln 2}{h}.
+\label{eq:half_life_conversion}
+\end{equation}
+
+\item \textbf{Impact coefficient $\lambda$:} The contemporaneous correlation between order flow (aggregate demand proxy) and price changes, normalized by the variance of order flow, identifies $\lambda$ up to the mean-field scaling. Volume proxies (e.g., signed volume or turnover) can serve as demand proxies.
+
+\item \textbf{Fundamental volatility $\sigma_v$:} The long-run variance of fundamentals (estimated from a slow-moving filter of prices or from fundamental proxies like earnings/dividends) identifies $\sigma_v$. Alternatively, $\sigma_v$ can be identified from the steady-state variance of the Kalman filter innovation process.
+
+\item \textbf{Signal noise $\sigma_\epsilon$:} The cross-sectional dispersion in beliefs (proxied by analyst forecast dispersion or survey-based disagreement) relative to the fundamental variance identifies the signal-to-noise ratio $\sigma_v/\sigma_\epsilon$. Given $\sigma_v$, this pins down $\sigma_\epsilon$.
+\end{enumerate}
+
+\paragraph{Identification chain (estimated vs.\ inferred vs.\ normalized).}
+From price-only data, one can (a) estimate $\kappa$ from a half-life diagnostic (item 2) and (b) calibrate the effective price/noise-trading volatility $\phi$ to match return volatility (item 1, after the unit mapping to log-return units if desired).
+Identifying $\lambda$ itself requires an order-flow proxy (item 3); given $\lambda$, the corresponding order-flow noise scale is inferred mechanically as $\sigma_\eta=\phi/\lambda$ (Section~II, microstructure sketch).
+In our numerical work, $\lambda$ is treated as a normalization choice (Table~\ref{tab:params}), and we therefore interpret $\phi$ as the empirically pinned-down price-noise scale conditional on that normalization.
+
+\paragraph{Baseline parameterization.}
+The baseline values in Table~\ref{tab:params} are chosen to satisfy the per-step uniqueness condition $0\le B_t<\Delta t$ (Theorem~\ref{thm:contraction}) and to generate return volatilities and mean-reversion speeds in a reasonable range for daily/weekly financial data. A simple sufficient condition ensuring $B_t<\Delta t$ uniformly is \eqref{eq:global_contraction}. Specifically:
+\begin{itemize}
+\item $\kappa=0.005$ implies a half-life of price deviations around $139$ steps (by \eqref{eq:half_life_conversion}), roughly consistent with mean-reversion speeds observed in equity markets.
+\item $\lambda=0.20$, $\phi=0.50$, and $\chi=0.05$ (with $\alpha_0=1$ and $\Delta t=1$) yield $\lambda/\kappa=40$ and satisfy the sufficient contraction condition $\alpha_0\lambda/(\Delta t(\chi+\gamma\phi^2))<1$, generating price-increment volatilities $\mathrm{std}(\Delta p)$ in the $0.5$--$1.0$ range per step (value units).
+\item $\sigma_v=0.10$ and $\sigma_\epsilon=0.80$ yield a signal-to-noise ratio $\sigma_v/\sigma_\epsilon=0.125$, consistent with moderate information quality in private signals.
+\end{itemize}
+
+A full calibration would target these moments jointly via method of moments or maximum likelihood on price/volume panel data. The identification argument above shows that the model is in principle testable given appropriate data.
+
+\input{sections/sec6_moment_match_vignette}
+
+\subsection{Parameter regimes and stress diagnostics}
+\label{sec:meaningful_regions}
+
+\paragraph{Preview of findings.}
+Two distinct notions matter in this model:
+(i) \emph{level amplification}---large mispricing/volatility levels under weak anchoring and/or high noise trading; and
+(ii) \emph{overconfidence (treatment) effects}---differences in outcomes when increasing perceived signal precision from $k=1$ to $k=3$.
+Our simulations show substantial \emph{level amplification} under stress regimes (Table~\ref{tab:mispricing_stress}), while the incremental
+$k$-effects on average mispricing are modest in both baseline and stress calibrations (Tables~\ref{tab:metrics}--\ref{tab:mispricing_persistence}).
+
+\subsubsection{Stress regimes: when mispricing \emph{levels} become economically large}
+\label{subsec:stress}
+Table~\ref{tab:mispricing_stress} reports ``stress diagnostics'' in which anchoring is weakened ($\kappa$ reduced) and/or noise trading increases ($\phi$ increased).
+Weak anchoring and high $\phi$ generate large mispricing and volatility \emph{levels} (e.g., $\E[|p-v|]$ exceeding $3$--$9$ in stress cases vs.\ $\approx 1.9$ in baseline).
+\textbf{Importantly, these level shifts are primarily driven by $(\kappa,\phi)$: within each stress case, outcomes are nearly unchanged between $k=1$ and $k=3$.}
+This demonstrates that level amplification comes from market microstructure parameters (anchoring strength, noise trading) rather than the overconfidence treatment.
+
+\subsubsection{Baseline benchmark: \texorpdfstring{$k$}{k} primarily increases disagreement and trading intensity}
+\label{subsec:baseline_benchmark}
+We next report the baseline bull/bear scenarios under the benchmark calibration (Table~\ref{tab:params}).
+In this parameterization, increasing overconfidence primarily increases cross-sectional disagreement and trading intensity
+(e.g., $\Delta \E[\sigma_i(\hat v_i)] \approx +0.059$ and $\Delta \E[\sigma_i(x_i)] \approx +0.001$), while changes in mean absolute mispricing remain modest ($|\Delta \E[|p-v|]| \approx 0.004$).
+Mispricing tail and persistence diagnostics (Table~\ref{tab:mispricing_persistence}) are essentially unchanged across $k$.
+This baseline serves as a robustness check: it demonstrates that the model does not always amplify mispricing, and that overconfidence's primary channel is through belief dispersion and trading intensity rather than price levels.
+
+\subsubsection{Targeted joint-move grid: \texorpdfstring{$k$}{k}-effects on mispricing are robustly small}
+\label{subsec:joint_grid}
+A natural concern is that one-at-a-time sweeps may miss interaction effects: overconfidence-induced amplification might require
+\emph{simultaneous} changes in anchoring strength, price impact, and noise trading. To test this directly, we run a targeted
+$3\times 3\times 3$ grid over $(\kappa,\lambda,\phi)$ in the bull regime using paired random seeds and compare
+$k=3$ against $k=1$ within each cell.
+
+Table~\ref{tab:joint_grid} reports cell-by-cell differences in key diagnostics, and
+Figures~\ref{fig:joint_grid_mispricing}--\ref{fig:joint_grid_disagreement} visualize the resulting treatment effects.
+We classify a cell as \emph{non-negligible} if (i) the 95\% confidence interval for $\Delta_k \E[|p-v|]$ excludes zero and
+(ii) $|\Delta_k \E[|p-v|]|$ exceeds 5\% of the baseline $\E[|p-v|]$ in the same cell.
+
+\textbf{Negative result (robust across the joint grid).}
+Across the full joint grid, $k=3-1$ differences in $\E[|p-v|]$ are economically small: in Table~\ref{tab:joint_grid}, $\Delta_k\E[|p-v|]$ ranges from $0$ to about $-0.02$ and only $2$ out of $27$ cells meet our ``non-negligible'' flag threshold.
+In several cells the 95\% confidence interval excludes zero, but the magnitude remains small relative to the baseline mispricing level (order $1$--$10$ depending on the regime),
+including in cells where weak anchoring and high noise trading generate large \emph{levels} of mispricing.
+By contrast, disagreement and trading-intensity proxies move systematically with $k$.
+In this architecture, overconfidence primarily loads onto belief dispersion and trading intensity rather than price-level mispricing.
+% Optional robustness: (i) Bear-regime repeat of the same grid; (ii) Report largest $|\Delta_k \E[|p-v|]|$ cell even if below 5\% threshold.
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_joint_move_kappa_lambda_sigma_eta.tex}}
+  \caption{Joint-grid treatment effects $\Delta_k$ across $(\kappa,\lambda,\phi)$ (Bull regime; $\Delta$ denotes $k=3$ minus $k=1$; mean $\pm$ 95\% CI across paired seeds; ``Flag'' per thresholds in text).}
+  \label{tab:joint_grid}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{../paper_artifacts/figures/fig_joint_move_grid_mispricing.png}
+  \caption{Joint-grid treatment effects $\Delta_k \E[|p-v|]$ across $(\kappa,\lambda)$ for three $\phi$ slices.}
+  \label{fig:joint_grid_mispricing}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{../paper_artifacts/figures/fig_joint_move_grid_disagreement.png}
+  \caption{Joint-grid treatment effects on disagreement $\Delta_k \E[\sigma_i(\hat v_i)]$ across $(\kappa,\lambda)$ for three $\phi$ slices.}
+  \label{fig:joint_grid_disagreement}
+\end{figure}
+
+\subsubsection{One-at-a-time sweeps: why they rarely generate large \texorpdfstring{$k$}{k}-effects}
+\label{subsec:sweeps}
+The joint-grid above (Subsection~\ref{subsec:joint_grid}) establishes that we checked the obvious concern: simultaneous changes in $(\kappa,\lambda,\phi)$ do not reveal hidden $k$-driven mispricing amplification. We now report one-at-a-time sweeps over the key levers highlighted by the model: the impact-to-anchoring ratio $(\lambda/\kappa)$,
+signal-to-noise in private information, anchoring strength $\kappa$, and regime drift magnitude $|\mu_v|$.
+
+\textbf{Economic significance (Flag).}
+The ``Flag'' column in Tables~\ref{tab:lambda_kappa_sweep}--\ref{tab:regime_strength_sweep} and in the joint grid (Table~\ref{tab:joint_grid}) marks cells where the $k=3{-}1$ effect is \emph{economically meaningful} by the following criteria.
+\emph{Mispricing:} we flag if $|\Delta\E[|p-v|]| \ge \max(\theta_{\mathrm{abs}},\ \theta_{\mathrm{rel}}\times \text{baseline }\E[|p-v|])$.
+For the one-at-a-time sweeps we use $\theta_{\mathrm{rel}}=10\%$ and $\theta_{\mathrm{abs}}=0.10$; for the joint grid we use $\theta_{\mathrm{rel}}=5\%$ and $\theta_{\mathrm{abs}}=0$ so that any cell with a nontrivial relative change in mispricing is flagged; the impaired-arbitrage extension (Table~\ref{tab:extension_state_dependent}) uses $\theta_{\mathrm{rel}}=5\%$ and $\theta_{\mathrm{abs}}=0.05$.
+\emph{Return volatility:} we flag if $|\Delta\,\mathrm{std}(r)| \ge 20\%$ of the baseline $\mathrm{std}(r)$ in that cell.
+These thresholds are chosen so that ``meaningful'' corresponds to a material relative change in mispricing (5--10\% of baseline) or a substantive change in return volatility (20\%); in our baseline, $\E[|p-v|]\approx 1.9$ (Table~\ref{tab:metrics}), so $\theta_{\mathrm{abs}}=0.10$ is about 5\% of baseline.
+A sensitivity check using $\theta_{\mathrm{rel}}\in\{5\%,15\%\}$ for mispricing and 15\% or 25\% for return volatility leaves the set of flagged cells nearly unchanged in our sweeps; the conclusion that $k$-effects on mispricing are small is robust to these alternatives.
+
+\textbf{Across one-at-a-time sweeps (Tables~\ref{tab:lambda_kappa_sweep}--\ref{tab:regime_strength_sweep}), $k$-effects on mispricing diagnostics remain small, consistent with the baseline's strong anchoring channel ($\kappa=0.005$) suppressing mispricing regardless of other parameters.}
+Even when sweeping impact strength $\lambda$ up to $0.50$ (Table~\ref{tab:lambda_kappa_sweep}), the $k$-effect on mispricing remains small (often negative) because anchoring remains strong.
+The sweeps therefore map where outcomes become fragile in \emph{levels} and clarify which parameters would need to be jointly re-estimated in a full calibration exercise targeting economically meaningful mispricing episodes.
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_lambda_kappa_sweep.tex}}
+  \caption{Impact-to-anchoring sweep (Bull regime). $\Delta$ denotes $k=3$ minus $k=1$; ``Flag'' marks economically meaningful regions (see text for thresholds).}
+  \label{tab:lambda_kappa_sweep}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{../paper_artifacts/figures/fig_lambda_kappa_sweep_mispricing.png}
+  \caption{Effect of $\lambda$ (impact) on $\Delta\E[|p-v|]$ (Bull regime; $\Delta$ denotes $k=3$ minus $k=1$).}
+  \label{fig:lambda_kappa_sweep_mispricing}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{../paper_artifacts/figures/fig_lambda_kappa_sweep_volatility.png}
+  \caption{Effect of $\lambda$ (impact) on $\Delta\,\mathrm{std}(r)$ (Bull regime; $\Delta$ denotes $k=3$ minus $k=1$).}
+  \label{fig:lambda_kappa_sweep_volatility}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_signal_to_noise_sweep.tex}}
+  \caption{Signal-to-noise sweep (Bull regime): varying $\sigma_\epsilon$ while holding $\sigma_v$ fixed. ``Flag'' marks economically meaningful regions (see text).}
+  \label{tab:signal_to_noise_sweep}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{../paper_artifacts/figures/fig_signal_to_noise_sweep_mispricing.png}
+  \caption{Effect of $\sigma_\epsilon$ on $\Delta\E[|p-v|]$ (Bull regime; $\Delta$ denotes $k=3$ minus $k=1$).}
+  \label{fig:signal_to_noise_sweep_mispricing}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{../paper_artifacts/figures/fig_signal_to_noise_sweep_volatility.png}
+  \caption{Effect of $\sigma_\epsilon$ on $\Delta\,\mathrm{std}(r)$ (Bull regime; $\Delta$ denotes $k=3$ minus $k=1$).}
+  \label{fig:signal_to_noise_sweep_volatility}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_kappa_sweep.tex}}
+  \caption{Anchoring sweep (Bull regime): varying $\kappa$ at fixed $(\lambda,\phi)$. ``Flag'' marks economically meaningful regions (see text).}
+  \label{tab:kappa_sweep}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_regime_strength_sweep.tex}}
+  \caption{Regime-strength sweep: varying $|\mu_v|$ in bull/bear regimes. ``Flag'' marks economically meaningful regions (see text).}
+  \label{tab:regime_strength_sweep}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_mispricing_stress.tex}}
+  \caption{Stress diagnostics: weakening anchoring ($\kappa$) and/or increasing noise trading ($\phi$) can generate large
+mispricing and volatility \emph{levels}. Within each stress case, outcomes are nearly unchanged between $k=1$ and $k=3$,
+indicating that level amplification is primarily driven by $(\kappa,\phi)$ rather than the overconfidence treatment.}
+  \label{tab:mispricing_stress}
+\end{table}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_heterogeneous_k.tex}}
+  \caption{Heterogeneous $k$ at fixed mean $\E[k]=2$: comparing dispersion in confidence under the same market regime. Column $\mathrm{std}_{\mathrm{xs}}(k_i)$ is the cross-sectional standard deviation of $k_i$ across agents, time-averaged.}
+  \label{tab:heterogeneous_k}
+\end{table}
+
+\subsection{Extensions and Validation Checks}
+\label{subsec:extensions}
+
+\subsubsection{Myopic vs.\ intertemporal policy}
+The core qualitative decomposition is robust across equilibrium concepts: the main $k$-loading remains on disagreement and trading intensity; price-level mispricing is comparatively less sensitive to $k$ under both myopic and intertemporal LQG policies.
+Comparisons use the same random seeds (paired shocks) and regime parameters; only the policy toggle and $k$ differ.
+Table~\ref{tab:myopic_intertemporal} and Figures~\ref{fig:myopic_intertemporal_mispricing}--\ref{fig:myopic_intertemporal_decomposition} report the results.
+The policy decomposition (Figure~\ref{fig:myopic_intertemporal_decomposition}) confirms the intertemporal hedging term is numerically active.
+Mispricing is slightly lower under the intertemporal policy than under the myopic rule, and the $k$-treatment effect remains tiny under both; the modest negative $\Delta\E[|p-v|]$ when increasing $k$ is consistent with stronger perceived precision inducing faster corrective trading against mispricing under strong anchoring, so price levels do not blow out---what changes with $k$ is dispersion and trading intensity rather than the level of mispricing.
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_myopic_vs_intertemporal.tex}}
+  \caption{Myopic vs.\ intertemporal policy: $\E[|p-v|]$, $q_{0.95}(|p-v|)$, and $\mathrm{std}(r)$ by policy and $k$.}
+  \label{tab:myopic_intertemporal}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{../paper_artifacts/figures/fig_myopic_intertemporal_mispricing.png}
+  \caption{Mean $|p-v|$ by policy (myopic/intertemporal) and $k$ (2$\times$2 grid; 95\% CI bands).}
+  \label{fig:myopic_intertemporal_mispricing}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{../paper_artifacts/figures/fig_myopic_intertemporal_disagreement.png}
+  \caption{Belief dispersion $\sigma_i(\hat v_i)$ by policy and $k$.}
+  \label{fig:myopic_intertemporal_disagreement}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{../paper_artifacts/figures/fig_myopic_intertemporal_policy_decomposition.png}
+  \caption{Policy decomposition: myopic vs.\ hedging term contribution (intertemporal runs).}
+  \label{fig:myopic_intertemporal_decomposition}
+\end{figure}
+
+\subsubsection{Extension: when \texorpdfstring{$k$}{k} can move mispricing}
+In the baseline anchored-impact microstructure (relevant for SPY-like regimes), $k$ does not materially move mispricing.
+When arbitrage pressure is impaired---e.g., via state-dependent anchoring $\kappa(t)=\kappa_0\exp(-\alpha|p-v|)$ so that $\kappa$ weakens under large mispricing---$k$ can in principle transmit into price-level mispricing.
+Table~\ref{tab:extension_state_dependent} and Figure~\ref{fig:extension_state_dependent} report the sensitivity to $\alpha$.
+In the parameter range shown ($\alpha\in[0,0.2]$), $\Delta\E[|p-v|]$ ($k=3{-}1$) remains small (around $-0.004$ to $-0.005$); even under modest state-dependence, $k$-effects on mispricing stay small. Larger arbitrage impairment (e.g., higher $\alpha$, lower baseline $\kappa_0$, or higher $\phi$) would be required for $k$ to materially amplify mispricing. The negative result is not built into linearity; it is regime-specific: in the baseline (strong anchoring), $k$ loads onto disagreement/intensity; in sufficiently impaired-arbitrage regimes, $k$ can amplify mispricing.
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_extension_state_dependent.tex}}
+  \caption{Impaired-arbitrage extension: $\Delta\E[|p-v|]$ ($k=3{-}1$) vs.\ $\alpha$ (kappa decay rate). ``Flag'' per thresholds in text.}
+  \label{tab:extension_state_dependent}
+\end{table}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{../paper_artifacts/figures/fig_extension_state_dependent.png}
+  \caption{Impaired-arbitrage extension: $\Delta\E[|p-v|]$ ($k=3-1$) vs.\ $\alpha$.}
+  \label{fig:extension_state_dependent}
+\end{figure}
+
+\subsubsection{Empirical stylized fact: volume and realized return volatility co-movement}
+We document a stylized fact consistent with the model's disagreement/intensity channel: volume (log volume) and realized return volatility (rolling standard deviation of daily log returns) co-move positively.
+We cannot directly measure belief dispersion without survey/analyst microdata; we use uncertainty proxies as a reduced-form correlate.
+This is a well-known generic relationship; we pitch it as external-face validity / sanity check for the model's intensity channel, not as an identification of ``disagreement.'' Analyst forecast dispersion, options-implied disagreement, or survey-based disagreement are natural next steps for tighter empirical tests.
+Stress episodes are defined mechanically as the top decile of realized return volatility (no cherry-picking).
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.95\linewidth]{../paper_artifacts/figures/fig_stylized_volume_volatility.png}
+  \caption{Rolling correlation of log volume and realized return volatility (SPY). Red shading = stress (top decile of realized return vol).}
+  \label{fig:stylized_volume_volatility}
+\end{figure}
+
+\begin{table}[t]
+  \centering
+  \scriptsize
+  \setlength{\tabcolsep}{3pt}
+  \resizebox{\columnwidth}{!}{\input{../paper_artifacts/tables/table_stylized_volume_volatility.tex}}
+  \caption{Volume--volatility correlation (log volume vs realized return volatility): full sample, stress, and non-stress (Newey--West $t$-stats).}
+  \label{tab:stylized_volume_volatility}
+\end{table}
+
+Figure~\ref{fig:stylized_volume_volatility} plots the rolling correlation; Table~\ref{tab:stylized_volume_volatility} reports correlations in stress vs.\ non-stress with Newey--West $t$-statistics.
+Our model provides a mechanism: overconfidence increases disagreement and trading intensity; when both are high, volume and belief dispersion move together.
+
+\textbf{Baseline results (benchmark).} Figure~\ref{fig:price_path} reports the mean price path across baseline scenarios. Figure~\ref{fig:mispricing} reports mean absolute mispricing $\E[|p_t-v_t|]$ (computed from the simulated fundamental), and Figure~\ref{fig:volatility} reports a rolling volatility proxy based on realized returns.
+Table~\ref{tab:metrics} complements the plots with seed-averaged moments and treatment effects ($k=3$ vs.\ $k=1$). 
+\textbf{In this baseline parameterization, the $k$-effect on mispricing is weak ($|\Delta \E[|p-v|]| \approx 0.004$), and mispricing tail/persistence diagnostics (Table~\ref{tab:mispricing_persistence}) are essentially unchanged across $k$.}
+Proposition~\ref{prop:mechanism_k} explains this analytically: the mean-field closure depends only on the mean belief $m_t-p_t$, so mispricing is driven by microstructure $(\kappa,\lambda,\phi)$ and the mean-belief error $e_t=m_t-v_t$; under the filter structure, $k$ raises disagreement (strictly in $k$) and trading intensity while affecting the mean belief only weakly, hence small price effects.
+Increasing overconfidence primarily increases cross-sectional disagreement and trading intensity (e.g., $\Delta \E[\sigma_i(\hat v_i)] \approx +0.059$ and lower perceived $\E[\bar\Sigma]$), consistent with that mechanism.
+The qualitative asymmetry remains visible in paths: bull regimes exhibit more persistent overvaluation episodes, while bear regimes exhibit noisier oscillations around fundamentals.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{../paper_artifacts/figures/fig_price_path.png}
+  \caption{Mean price path across baseline scenarios (bull/bear regimes; $k\in\{1,3\}$).}
+  \label{fig:price_path}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{../paper_artifacts/figures/fig_mispricing.png}
+  \caption{Mean absolute mispricing $\E[|p_t-v_t|]$ across baseline scenarios.}
+  \label{fig:mispricing}
+\end{figure}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.48\textwidth]{../paper_artifacts/figures/fig_volatility.png}
+  \caption{Rolling volatility proxy (standard deviation of returns) across baseline scenarios.}
+  \label{fig:volatility}
+\end{figure}
+
+\textbf{Discussion.} The particle simulations are intended as computational evidence for the feedback mechanism highlighted by the model: misperceived signal precision affects belief dispersion and demand, which in turn impacts prices through \eqref{eq:anchored_impact}. A full numerical fixed-point verification for the common-noise mean-field limit (e.g., via conditional-law SPDE solvers) is left for future work.
+As a robustness check for the informational simplification (filtering on $\xi_i$ only), the artifact script also produces a ``price-augmented'' filtering variant aligned with the Euler price update: it uses the realized increment $p_{t+1}-p_t$ to form an implicit noisy observation of $v_t$ (Appendix~A). The qualitative $k$-effects on perceived uncertainty and disagreement remain similar in that check (Table~\ref{tab:price_filter}).

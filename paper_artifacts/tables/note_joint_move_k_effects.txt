@@ -1,0 +1,8 @@
+Targeted joint-move grid over (κ, λ, σ_η) with paired seeds (bull regime).
+Non-negligible criterion: 95% CI excludes 0 AND |ΔE[|p−v|]| ≥ 5% of baseline E[|p−v|] in the same cell.
+
+Result: non-negligible k-effects on price-level mispricing appear in the following cell(s) (σ_η, κ, λ):
+- phi=0.25, kappa=0.005, lambda=0.50
+- phi=0.25, kappa=0.020, lambda=0.50
+
+Interpretation: k materially affects level mispricing only in these parameter regions; elsewhere it primarily loads onto disagreement/intensity.

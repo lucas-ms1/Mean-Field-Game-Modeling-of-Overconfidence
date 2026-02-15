@@ -1,0 +1,91 @@
+horizon: 400
+num_agents: 200
+seed: 0
+alpha_0: 1.0
+gamma: 1.0
+chi: 0.05
+# Price-noise variance used in the one-step myopic risk denominator.
+# Should match market.noise_sigma^2 when market.price_rule=anchored_impact.
+sigma_p2: 0.25
+lambda_price: 0.1
+
+# Overconfidence (k) is set per variant in build_paper_artifacts.py.
+k_init: 1.0
+k_min: 1.0
+k_max: 1.0
+
+# Fundamental + signal primitives (paper baseline).
+fundamental_mu: 0.02
+fundamental_sigma: 0.1
+observation_sigma: 0.8
+observation_common_sigma: 0.1
+
+# No salience weighting in paper baseline runs.
+rho_pos: 0.0
+rho_neg: 0.0
+
+memory:
+  salience_mode: "pnl"
+  h0: 5.0
+  h1: 0.0
+  ema_alpha: 0.2
+  eps: 1.0e-6
+
+confidence:
+  memory_enabled: false
+  alpha_u: 0.0
+  psi: 0.0
+  k_bar: 1.0
+  lambda_herd: 0.0
+
+price_model:
+  enabled: false
+  method: "rls"
+  delta: 1000.0
+  forget_factor: 0.995
+  ridge: 1.0e-8
+  salience_weighting: false
+  w_scale: 1.0
+  reset_on_break: true
+
+planning:
+  enabled: false
+  K: 1
+  use_model: false
+  horizon: 1
+  recent_window: 150
+  gate_after_break: 200
+  use_salience_weights: false
+  update_actor: false
+  warmup_steps: 20
+  synthetic_lr_scale: 0.1
+  only_post_break: false
+
+rl:
+  enabled: false
+  beta: 0.99
+  gamma: 1.0
+  sigma_p2: 0.25
+  eta_v: 0.05
+  eta_pi: 0.01
+  policy_sigma: 0.5
+  action_clip: 10.0
+  seed: 123
+  reward_mode: "expected_utility"
+  use_belief_var: true
+  reset_critic_on_break: false
+
+market:
+  price_rule: "anchored_impact"
+  kappa: 0.005
+  impact: 0.20
+  noise_sigma: 0.50
+  noise_vol_scale: 0.0
+
+experiment:
+  regime_break_enabled: false
+  t_break: 300
+  post_kappa: null
+  post_impact: null
+  post_sigma_v: null
+  post_obs_noise: null

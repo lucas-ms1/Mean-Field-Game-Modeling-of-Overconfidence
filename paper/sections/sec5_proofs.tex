@@ -1,0 +1,397 @@
+%=================================================================
+% Section V: Proofs
+%=================================================================
+\section{PROOFS}
+\label{sec:proofs}
+
+%------------------------------
+\subsection*{Proof of Proposition~\ref{prop:static_comparative}}
+\begin{proof}
+From the static price equation \eqref{eq:static_price}, the coefficient on $v$ is
+\[
+a(k)=\frac{\lambda \tau'_{\epsilon,0}}{\gamma+\lambda(\tau_{v,0}+\tau'_{\epsilon,0})},
+\qquad \tau'_{\epsilon,0}=\frac{k}{\sigma_{\epsilon,0}^2},\quad \tau_{v,0}=\frac{1}{\sigma_{v,0}^2}.
+\]
+Set $u:=\tau'_{\epsilon,0}>0$ and define $f(u):=\frac{\lambda u}{\gamma+\lambda(\tau_{v,0}+u)}$.
+Then $a(k)=f(\tau'_{\epsilon,0})$ and
+\[
+f'(u)=\frac{\lambda(\gamma+\lambda\tau_{v,0})}{\big(\gamma+\lambda(\tau_{v,0}+u)\big)^2}>0,
+\]
+so $f$ is strictly increasing in $u$, hence $a(k)$ is strictly increasing in $k$.
+Moreover, $a(k)>0$ is immediate since all parameters are positive, and
+\[
+a(k)<1 \iff \lambda u < \gamma+\lambda(\tau_{v,0}+u) \iff 0<\gamma+\lambda\tau_{v,0},
+\]
+which holds. Thus $0<a(k)<1$ and $a(k)$ increases with $k$.
+\end{proof}
+
+%------------------------------
+\subsection*{Proof of Proposition~\ref{prop:myopic_cara}}
+\begin{proof}
+Fix a decision interval $\Delta t$ and condition on $\mathcal F_t^i$.
+By the proposition's assumptions, $\Delta p_{t+\Delta t}$ is Gaussian with
+\[
+\mu_{i,t}:=\E_i[\Delta p_{t+\Delta t}]=\big(\kappa(\hat v_{i,t}-p_t)+\lambda\bar u_t\big)\Delta t,
+\qquad
+\Var_i(\Delta p_{t+\Delta t})=\sigma^2_{p,i,t}\Delta t.
+\]
+The one-step wealth increment is
+\[
+\Delta W_{i,t}=x_{i,t}\Delta p_{t+\Delta t}-\frac{\chi}{2}x_{i,t}^2\Delta t,
+\]
+hence $\Delta W_{i,t}$ is Gaussian conditional on $\mathcal F_t^i$ with
+\[
+\E_i[\Delta W_{i,t}]=x_{i,t}\mu_{i,t}-\frac{\chi}{2}x_{i,t}^2\Delta t,
+\qquad
+\Var_i(\Delta W_{i,t})=x_{i,t}^2\sigma^2_{p,i,t}\Delta t.
+\]
+For CARA utility $U(w)=-e^{-\gamma w}$ and Gaussian $X\sim N(m,s^2)$, the standard identity gives
+$\E[-e^{-\gamma X}]=-\exp(-\gamma m+(\gamma^2/2)s^2)$.
+Applying this with $X=W_{i,t}+\Delta W_{i,t}$ (where $W_{i,t}$ is $\mathcal F_t^i$-measurable),
+maximizing conditional expected utility over $x_{i,t}$ is equivalent to maximizing the certainty-equivalent quadratic
+\[
+x_{i,t}\mu_{i,t}-\frac{\gamma}{2}x_{i,t}^2\sigma^2_{p,i,t}\Delta t-\frac{\chi}{2}x_{i,t}^2\Delta t.
+\]
+The first-order condition yields
+$\mu_{i,t}-(\gamma\sigma^2_{p,i,t}+\chi)x_{i,t}\Delta t=0$, so
+\[
+x^\star_{i,t}=\frac{\mu_{i,t}/\Delta t}{\chi+\gamma\sigma^2_{p,i,t}}
+=\frac{\kappa(\hat v_{i,t}-p_t)+\lambda\bar u_t}{\chi+\gamma\sigma^2_{p,i,t}},
+\]
+which is \eqref{eq:myopic_policy}.
+\end{proof}
+
+%------------------------------
+\subsection*{Proof of Proposition~\ref{prop:step_fixed_point}}
+\begin{proof}
+Work on the discrete grid with step $\Delta t$ and the Euler increment
+\[
+\begin{aligned}
+\Delta p_{t+1}:=p_{t+1}-p_t
+&=\kappa(v_t-p_t)\Delta t+\lambda \bar u_t\Delta t\\
+&\quad +\phi\sqrt{\Delta t}\,\varepsilon^\eta_{t+1},\\
+\varepsilon^\eta_{t+1}&\sim N(0,1).
+\end{aligned}
+\]
+Conditional on investor $i$'s information $\mathcal F_t^i$, we have $\mathbb E[v_t\mid\mathcal F_t^i]=\hat v_{i,t}$ and
+$\mathrm{Var}(v_t\mid\mathcal F_t^i)=\Sigma_{i,t}$. Hence
+\[
+\mathbb E[\Delta p_{t+1}\mid\mathcal F_t^i]
+=\big(\kappa(\hat v_{i,t}-p_t)+\lambda \bar u_t\big)\Delta t,
+\]
+and, using independence of $\varepsilon^\eta_{t+1}$ from $\mathcal F_t^i$ and from $v_t$,
+\[
+\mathrm{Var}(\Delta p_{t+1}\mid\mathcal F_t^i)
+\begin{aligned}
+&=\kappa^2\,\mathrm{Var}(v_t\mid\mathcal F_t^i)(\Delta t)^2+\phi^2\Delta t\\
+&=\kappa^2\Sigma_{i,t}(\Delta t)^2+\phi^2\Delta t.
+\end{aligned}
+\]
+Under the one-step myopic CARA approximation (Proposition~\ref{prop:myopic_cara}), the investor chooses $x_{i,t}$ to maximize the certainty-equivalent quadratic
+\[
+ x_{i,t}\,\mathbb E[\Delta p_{t+1}\mid\mathcal F_t^i]
+ -\frac{\gamma}{2}x_{i,t}^2\,\mathrm{Var}(\Delta p_{t+1}\mid\mathcal F_t^i)
+ -\frac{\chi}{2}x_{i,t}^2\,\Delta t.
+\]
+Substituting the conditional moments above and dividing by the common factor $\Delta t>0$ gives the equivalent problem
+\[
+\max_{x_{i,t}}\;
+ x_{i,t}\big(\kappa(\hat v_{i,t}-p_t)+\lambda \bar u_t\big)
+ -\frac12\Big(\gamma\big(\phi^2+\kappa^2\Sigma_{i,t}\Delta t\big)+\chi\Big)x_{i,t}^2.
+\]
+The unique maximizer is
+\[
+ x_{i,t}^*=\frac{\kappa(\hat v_{i,t}-p_t)+\lambda \bar u_t}{\chi+\gamma(\phi^2+\kappa^2\Sigma_{i,t}\Delta t)}.
+\]
+Including the optional scale $\alpha_0>0$ (risk-budget/position-size parameter) yields \eqref{eq:impl_policy} with
+\[
+ \mathrm{Var}^{\mathrm{eff}}_{i,t}:=\phi^2+\kappa^2\Sigma_{i,t}\Delta t,
+ \]
+ 
+Write \eqref{eq:impl_policy} as $x_{i,t}=a_{i,t}+b_{i,t}\bar u_t$ with
+\[
+ a_{i,t}:=\frac{\alpha_0\kappa(\hat v_{i,t}-p_t)}{\chi+\gamma \mathrm{Var}^{\mathrm{eff}}_{i,t}},
+ \qquad
+ b_{i,t}:=\frac{\alpha_0\lambda}{\chi+\gamma \mathrm{Var}^{\mathrm{eff}}_{i,t}}.
+\]
+Averaging over $i=1,\dots,N$ gives $\bar x_t=A_t+B_t\bar u_t$ where $A_t,B_t$ are as defined in the paper.
+Using $\bar u_t=(\bar x_t-\bar x_{t^-})/\Delta t$ gives
+\[
+\bar x_t = A_t+\frac{B_t}{\Delta t}\bar x_t-\frac{B_t}{\Delta t}\bar x_{t^-}.
+\]
+Rearranging yields $\big(1-B_t/\Delta t\big)\bar x_t=A_t-(B_t/\Delta t)\bar x_{t^-}$.
+If $0\le B_t<\Delta t$, the unique solution is
+\[
+\bar x_t=\frac{A_t-(B_t/\Delta t)\bar x_{t^-}}{1-B_t/\Delta t},
+\qquad
+\bar u_t=\frac{\bar x_t-\bar x_{t^-}}{\Delta t},
+\]
+as claimed.
+\end{proof}
+
+%------------------------------
+\subsection*{Proof of Theorem~\ref{thm:contraction}}
+\begin{proof}
+By Proposition~\ref{prop:step_fixed_point}, for fixed $(\hat v_{i,t},\Sigma_{i,t})_{i=1}^N$, $p_t$, and $\bar x_{t^-}$, the per-step map is affine:
+\[
+ \Phi_t(\bar x)=A_t+\frac{B_t}{\Delta t}\bar x-\frac{B_t}{\Delta t}\bar x_{t^-}.
+\]
+For any $\bar x,\bar x'$,
+\[
+ |\Phi_t(\bar x)-\Phi_t(\bar x')|=\frac{|B_t|}{\Delta t}\,|\bar x-\bar x'|.
+\]
+Thus if $0\le B_t<\Delta t$, $\Phi_t$ is a contraction on $\mathbb R$ with contraction constant $B_t/\Delta t$ and has a unique fixed point,
+given in closed form in Proposition~\ref{prop:step_fixed_point}.
+
+For the sufficient uniform condition: since $\Sigma_{i,t}\ge 0$ and $\Delta t>0$, we have
+$\mathrm{Var}^{\mathrm{eff}}_{i,t}=\phi^2+\kappa^2\Sigma_{i,t}\Delta t\ge \phi^2$, hence
+$D_{i,t}=\chi+\gamma\mathrm{Var}^{\mathrm{eff}}_{i,t}\ge \chi+\gamma\phi^2$ and therefore
+\[
+ B_t=\frac{1}{N}\sum_{i=1}^N \frac{\alpha_0\lambda}{D_{i,t}}
+ \le \frac{1}{N}\sum_{i=1}^N \frac{\alpha_0\lambda}{\chi+\gamma \phi^2}
+ =\frac{\alpha_0\lambda}{\chi+\gamma\phi^2}.
+\]
+Therefore $\alpha_0\lambda/(\Delta t(\chi+\gamma\phi^2))<1$ implies $B_t<\Delta t$ for all $t$.
+\end{proof}
+
+%------------------------------
+\subsection*{Proof of Theorem~\ref{thm:well_posed} (Well-posedness of the discrete-time particle system)}
+\begin{proof}
+Fix $T\in\mathbb N$, $\Delta t>0$, and fix a realization of all common and idiosyncratic shock sequences used by the algorithm.
+We show by induction on $t=0,1,\dots,T$ that the state
+\[
+S_t=(v_t,p_t,\{(\hat v_{i,t},\Sigma_{i,t})\}_{i=1}^N,\bar x_t)
+\]
+is uniquely determined and adapted.
+
+At $t=0$, $(v_0,p_0,\{\hat v_{i,0},\Sigma_{i,0}\}_{i=1}^N)$ are given by assumption (A1). Suppose the system is uniquely
+defined up to time $t$. Then:
+\begin{enumerate}[leftmargin=2em]
+\item By (A2), the discrete-time Kalman recursion in Appendix A defines each $(\hat v_{i,t},\Sigma_{i,t})$ uniquely from
+$(\hat v_{i,t-1},\Sigma_{i,t-1})$ and the realized private signal at time $t$ (which is a measurable function of the fixed
+shock sequences and $v_t$).
+\item Given $(\hat v_{i,t},\Sigma_{i,t})_{i=1}^N$ and $p_t$, the per-step demand map $\Phi_t$ is well-defined by Proposition~\ref{prop:step_fixed_point}.
+By (A3) (e.g.\ $B_t<\Delta t$), $\Phi_t$ has a unique fixed point $\bar x_t$ (and hence $\bar u_t$), and then each $x_{i,t}$ is uniquely determined.
+\item Finally, by (A4), the Euler updates for $v_{t+1}$ and $p_{t+1}$ are explicit measurable functions of $(v_t,p_t)$, $\bar u_t$,
+and the realized shocks at time $t+1$, hence define unique $(v_{t+1},p_{t+1})$.
+\end{enumerate}
+Thus $S_{t+1}$ is uniquely determined from $S_t$ and the fixed shocks, and is adapted to the natural filtration generated by
+the shocks. Induction completes the proof, yielding a unique adapted solution path on $\{0,1,\dots,T\}$.
+\end{proof}
+
+%------------------------------
+\subsection*{Proof of Proposition~\ref{prop:stationary_disagreement} (Constant-gain approximation)}
+\begin{proof}
+Assume a homogeneous type $k$ and adopt the constant-gain approximation $K_t\equiv K^*(k)=:K>0$.
+From Appendix A, the (subjective) Kalman--Bucy filter is
+\[
+d\hat v_{i,t}=\mu_v\,dt+K\big(d\xi_{i,t}-\hat v_{i,t}\,dt\big).
+\]
+Using the observation equation \eqref{eq:xi_dyn_ct},
+\[
+d\xi_{i,t}=v_t\,dt+\sigma_c\,dU_t+\sigma_\epsilon\,dB_{i,t},
+\]
+so substituting gives
+\[
+\begin{aligned}
+d\hat v_{i,t}
+&=\mu_v\,dt+K\big((v_t-\hat v_{i,t})\,dt+\sigma_c\,dU_t+\sigma_\epsilon\,dB_{i,t}\big)\\
+&= \big(\mu_v+K(v_t-\hat v_{i,t})\big)\,dt+K\sigma_c\,dU_t+K\sigma_\epsilon\,dB_{i,t}.
+\end{aligned}
+\]
+Let $m_t:=\int_0^1 \hat v_{i,t}\,di$ be the cross-sectional mean belief. Under a continuum (or large-$N$) approximation,
+the idiosyncratic noises average out, i.e.\ $\int_0^1 dB_{i,t}\,di=0$ in the sense of laws/LLN, while the common term
+$U_t$ persists. Averaging the SDE over $i$ yields
+\[
+dm_t=\big(\mu_v+K(v_t-m_t)\big)\,dt+K\sigma_c\,dU_t.
+\]
+Define the deviation $\delta_{i,t}:=\hat v_{i,t}-m_t$. Subtracting the $m_t$ equation from the $\hat v_{i,t}$ equation cancels
+the common-noise terms and gives
+\[
+\begin{aligned}
+d\delta_{i,t}
+&= -K(\hat v_{i,t}-m_t)\,dt + K\sigma_\epsilon\,dB_{i,t}\\
+&= -K\delta_{i,t}\,dt+K\sigma_\epsilon\,dB_{i,t},
+\end{aligned}
+\]
+which is \eqref{eq:delta_ou}.
+
+Now condition on the common filtration $\mathcal F_t^0:=\sigma(W_s,U_s,Z_s:s\le t)$. Conditional on $\mathcal F_t^0$,
+$\delta_{i,t}$ solves an OU SDE driven only by the idiosyncratic Brownian motion $B_{i,t}$, so its conditional variance
+$D_t:=\mathrm{Var}(\delta_{i,t}\mid \mathcal F_t^0)=\mathbb E[\delta_{i,t}^2\mid \mathcal F_t^0]$ satisfies (It\^o + tower property)
+\[
+\begin{aligned}
+d(\delta_{i,t}^2)
+&=2\delta_{i,t}\,d\delta_{i,t}+(d\delta_{i,t})^2\\
+&=\big(-2K\delta_{i,t}^2+K^2\sigma_\epsilon^2\big)\,dt+2K\sigma_\epsilon\delta_{i,t}\,dB_{i,t}.
+\end{aligned}
+\]
+Taking $\mathcal F_t^0$-conditional expectation kills the martingale term and yields the linear ODE
+\[
+\frac{d}{dt}D_t = -2K D_t + K^2\sigma_\epsilon^2.
+\]
+Hence $D_t\to D_\infty:=\frac{K^2\sigma_\epsilon^2}{2K}=\frac{K\sigma_\epsilon^2}{2}$, giving \eqref{eq:D_infty}.
+
+Finally, with $R'(k)=\sigma_c^2+\sigma_\epsilon^2/k$ we have $K^*(k)=\sigma_v/\sqrt{R'(k)}$, which is strictly increasing in $k$
+because $R'(k)$ is strictly decreasing in $k$; therefore $D_\infty(k)=(K^*(k)\sigma_\epsilon^2)/2$ is strictly increasing in $k$.
+\end{proof}
+
+%------------------------------
+\subsection*{Proof of Proposition~\ref{prop:tracking_error} (Constant-gain approximation)}
+\begin{proof}
+Under the constant-gain approximation (same setting as Proposition~\ref{prop:stationary_disagreement}), we derived
+\[
+dm_t=\big(\mu_v+K(v_t-m_t)\big)\,dt+K\sigma_c\,dU_t.
+\]
+The fundamental satisfies $dv_t=\mu_v\,dt+\sigma_v\,dW_t$. Define $e_t:=m_t-v_t$.
+Then
+\[
+\begin{aligned}
+de_t
+&=dm_t-dv_t\\
+&=\big(\mu_v+K(v_t-m_t)\big)\,dt+K\sigma_c\,dU_t-\mu_v\,dt-\sigma_v\,dW_t\\
+&=-K e_t\,dt+K\sigma_c\,dU_t-\sigma_v\,dW_t,
+\end{aligned}
+\]
+which is \eqref{eq:e_ou}.
+
+Since $U$ and $W$ are independent Brownian motions, $e_t$ is an OU process with mean-reversion rate $K$ and diffusion variance rate
+$K^2\sigma_c^2+\sigma_v^2$. The stationary variance is the standard OU value
+\[
+\mathrm{Var}(e_\infty)=\frac{K^2\sigma_c^2+\sigma_v^2}{2K}
+=\frac{K\sigma_c^2}{2}+\frac{\sigma_v^2}{2K},
+\]
+which is \eqref{eq:Var_e_infty}.
+
+To see monotonicity in $k$, view $\Var(e_\infty)$ as a function of $K>0$:
+\[
+g(K):=\frac{K\sigma_c^2}{2}+\frac{\sigma_v^2}{2K},
+\qquad
+g'(K)=\frac{\sigma_c^2}{2}-\frac{\sigma_v^2}{2K^2}.
+\]
+If $\sigma_c=0$, then $g(K)=\sigma_v^2/(2K)$ is strictly decreasing in $K$, and since $K^*(k)$ is strictly increasing in $k$,
+$\Var(e_\infty)$ is strictly decreasing in $k$.
+If $\sigma_c>0$, then $g'(K)<0$ on $K\in(0,\sigma_v/\sigma_c)$ and $K^*(k)=\sigma_v/\sqrt{R'(k)}\le \sigma_v/\sigma_c$ since
+$R'(k)=\sigma_c^2+\sigma_\epsilon^2/k\ge \sigma_c^2$. Thus $g$ is decreasing along the range of $K^*(k)$, so $\Var(e_\infty)$ is
+strictly decreasing in $k$.
+\end{proof}
+
+%------------------------------
+\subsection*{Proof of Proposition~\ref{prop:2d_ou} (2D OU / Lyapunov form)}
+\begin{proof}
+Assume $\mu_v=0$ and the homogeneous closure \eqref{eq:mean_field_closure}:
+\[
+\bar x_t=\frac{\kappa}{\gamma\phi^2-\lambda}(m_t-p_t).
+\]
+Write $y_t:=p_t-v_t$ and $e_t:=m_t-v_t$. Using $m_t-p_t=(m_t-v_t)-(p_t-v_t)=e_t-y_t$, the price SDE \eqref{eq:anchored_impact} becomes
+\[
+\begin{aligned}
+dp_t
+&=\kappa(v_t-p_t)\,dt+\lambda \bar x_t\,dt+\phi\,dZ_t\\
+&= -\kappa y_t\,dt + \frac{\lambda\kappa}{\gamma\phi^2-\lambda}(e_t-y_t)\,dt+\phi\,dZ_t.
+\end{aligned}
+\]
+Let $c:=\lambda\kappa/(\gamma\phi^2-\lambda)$. Then
+\[
+dp_t=-(\kappa+c)y_t\,dt+c e_t\,dt+\phi\,dZ_t.
+\]
+Since $\mu_v=0$, $dv_t=\sigma_v\,dW_t$, hence
+\[
+dy_t=dp_t-dv_t=-(\kappa+c)y_t\,dt+c e_t\,dt+\phi\,dZ_t-\sigma_v\,dW_t.
+\]
+From Proposition~\ref{prop:tracking_error}, the mean-belief tracking error satisfies
+\[
+de_t=-K e_t\,dt+K\sigma_c\,dU_t-\sigma_v\,dW_t,
+\qquad K:=K^*(k)>0.
+\]
+Stacking $X_t=(y_t,e_t)^\top$ yields the linear system \eqref{eq:2d_ou} with drift matrix
+\[
+A(k)=\begin{pmatrix}-(\kappa+c) & c\\ 0 & -K\end{pmatrix}
+\]
+and diffusion matrix $G(k)$ as stated.
+
+If $\gamma\phi^2>\lambda$ then $c>0$ and $\kappa+c>0$; also $K>0$ by definition. The eigenvalues of $A(k)$ are
+$-(\kappa+c)$ and $-K$, hence strictly negative: $A(k)$ is Hurwitz. For a Hurwitz $A$, the continuous-time Lyapunov equation
+\[
+A P + P A^\top + G G^\top = 0
+\]
+has a unique symmetric positive semidefinite solution $P$, which equals the stationary covariance $P=\mathbb E[X_\infty X_\infty^\top]$.
+This gives \eqref{eq:lyapunov} and shows $\mathrm{Var}(y_\infty)$ depends on $k$ through $K^*(k)$.
+\end{proof}
+
+%------------------------------
+\subsection*{Proof of Corollary~\ref{cor:2d_ou_closed_form} (Closed-form stationary variances)}
+\begin{proof}
+Let $A=\begin{pmatrix}-(\kappa+c) & c\\ 0 & -K\end{pmatrix}$ and $Q:=GG^\top$.
+Because $dZ_t,dU_t,dW_t$ are independent, from \eqref{eq:2d_ou} we have
+\[
+Q=\begin{pmatrix}
+\phi^2+\sigma_v^2 & \sigma_v^2\\
+\sigma_v^2 & K^2\sigma_c^2+\sigma_v^2
+\end{pmatrix}
+ =: \begin{pmatrix} q_{11} & q_{12}\\ q_{12} & q_{22}\end{pmatrix}.
+\]
+Write $P=\begin{pmatrix}p_{11}&p_{12}\\ p_{12}&p_{22}\end{pmatrix}$.
+Compute
+\[
+\begin{aligned}
+AP&=\begin{pmatrix}
+-(\kappa+c)p_{11}+c p_{12} & -(\kappa+c)p_{12}+c p_{22}\\
+- K p_{12} & -K p_{22}
+\end{pmatrix},\\[2pt]
+PA^\top&=\begin{pmatrix}
+-(\kappa+c)p_{11}+c p_{12} & -K p_{12}\\
+-(\kappa+c)p_{12}+c p_{22} & -K p_{22}
+\end{pmatrix}.
+\end{aligned}
+\]
+Thus the Lyapunov equation $AP+PA^\top+Q=0$ yields the entrywise system:
+\begin{align*}
+(2,2):\;& -2K p_{22}+q_{22}=0,\\
+(1,2):\;& -(\kappa+c+K)p_{12}+c p_{22}+q_{12}=0,\\
+(1,1):\;& -2(\kappa+c)p_{11}+2c p_{12}+q_{11}=0.
+\end{align*}
+Solving sequentially gives
+\[
+p_{22}=\frac{q_{22}}{2K}=\frac{K^2\sigma_c^2+\sigma_v^2}{2K}
+=\frac{K\sigma_c^2}{2}+\frac{\sigma_v^2}{2K},
+\]
+\[
+p_{12}=\frac{c p_{22}+q_{12}}{\kappa+c+K},
+\qquad
+p_{11}=\frac{c p_{12}+q_{11}/2}{\kappa+c},
+\]
+which matches the closed-form expressions in Corollary~\ref{cor:2d_ou_closed_form}.
+\end{proof}
+
+%------------------------------
+\subsection*{Proof of Proposition~\ref{prop:stability} (Homogeneous closed-loop stability benchmark)}
+\begin{proof}
+Assume the homogeneous closure \eqref{eq:mean_field_closure} holds and, for this benchmark, $m_t=v_t$. Then
+\[
+\bar x_t=\frac{\kappa}{\gamma\phi^2-\lambda}(v_t-p_t),
+\]
+and substituting into \eqref{eq:anchored_impact} gives
+\[
+\begin{aligned}
+dp_t
+&=\kappa(v_t-p_t)\,dt+\lambda\frac{\kappa}{\gamma\phi^2-\lambda}(v_t-p_t)\,dt+\phi\,dZ_t\\
+&= -\kappa_{\mathrm{eff}}(p_t-v_t)\,dt+\phi\,dZ_t,
+\end{aligned}
+\]
+where
+\[
+\kappa_{\mathrm{eff}}:=\kappa\Big(1+\frac{\lambda}{\gamma\phi^2-\lambda}\Big)
+=\kappa\frac{\gamma\phi^2}{\gamma\phi^2-\lambda}.
+\]
+Define $y_t:=p_t-v_t$. Using $dv_t=\mu_v\,dt+\sigma_v\,dW_t$,
+\[
+dy_t=dp_t-dv_t=-\kappa_{\mathrm{eff}}y_t\,dt-\mu_v\,dt+\phi\,dZ_t-\sigma_v\,dW_t,
+\]
+as claimed. If $\gamma\phi^2>\lambda$ then $\kappa_{\mathrm{eff}}>0$ and $y_t$ is an OU process.
+When $\mu_v=0$, $y_t$ has diffusion variance rate $\phi^2+\sigma_v^2$ and mean-reversion rate $\kappa_{\mathrm{eff}}$,
+so its stationary variance is
+\[
+\mathrm{Var}(y_\infty)=\frac{\phi^2+\sigma_v^2}{2\kappa_{\mathrm{eff}}}.
+\]
+\end{proof}

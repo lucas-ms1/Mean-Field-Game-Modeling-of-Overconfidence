@@ -1,0 +1,84 @@
+% Review version (technical extract) of Section 6: Numerical Examples.
+% Keeps only the algorithmic/procedural content needed to parse the model's implementation bridge,
+% plus label anchors referenced from the unchanged introduction.
+
+\paragraph{Scheme (map form).}
+Let $S_t=(v_t,p_t,\{(\hat v_{i,t},\Sigma_{i,t},x_{i,t^-})\}_{i=1}^N)$. For fixed shocks (common and idiosyncratic) the particle system defines a measurable one-step map
+\begin{equation}
+S_{t+1}=\Psi_{\Delta t,N}(S_t;\text{shocks}),
+\end{equation}
+obtained by composing: (a) the Kalman update (Appendix~A), (b) the per-step mean-field fixed point (Theorem~\ref{thm:contraction}), and (c) the Euler updates for $(v,p)$. Under the contraction condition \eqref{eq:global_contraction}, the fixed-point step is stable and the full map is well-defined (Theorem~\ref{thm:well_posed}).
+
+\begin{algorithm}[t]
+\caption{Particle approximation (one scenario)}
+\label{alg:particle}
+\begin{algorithmic}[1]
+\STATE Fix parameters, scenario $(\mu_v,k)$, horizon $T$, population size $N$, and seeds $m=1,\dots,M$.
+\FOR{$m=1$ to $M$}
+  \STATE Simulate one realization of common shocks $(\Delta W_t,\Delta U_t,\Delta Z_t)_{t=0}^{T-1}$.
+  \STATE Initialize $(v_0,p_0)$ and agent beliefs $(\hat v_{i,0},\Sigma_{i,0})$ for $i=1,\dots,N$.
+  \STATE Initialize inventories $x_{i,0^-}$ and wealth $W_{i,0}$ for $i=1,\dots,N$.
+  \FOR{$t=0$ to $T-1$}
+    \STATE For each agent $i$, draw idiosyncratic signal noise $\Delta B_{i,t}$ and update $(\hat v_{i,t},\Sigma_{i,t})$ via the (perceived) Kalman recursion.
+    \STATE Compute $(\bar x_t,\bar u_t)$ from the per-step stock--flow fixed point using pre-trade inventories (Proposition~\ref{prop:step_fixed_point}).
+    \STATE For each agent $i$, set $x_{i,t}=x^\star_{i,t}$ from the myopic rule given $\bar u_t$ and compute trading rate $u_{i,t}=(x_{i,t}-x_{i,t^-})/\Delta t$.
+    \STATE Update $(v_{t+1},p_{t+1})$ using the Euler discretization of \eqref{eq:anchored_impact} (flow-based impact).
+    \STATE Update wealth $W_{i,t+1}=W_{i,t}+x_{i,t}\Delta p_{t+1}-(\chi/2)x_{i,t}^2\Delta t$ and set $x_{i,t+1^-}=x_{i,t}$.
+  \ENDFOR
+  \STATE Record seed-level time series (price, fundamental, returns, mispricing, demand moments).
+\ENDFOR
+\STATE Report scenario figures/tables by averaging statistics across seeds (Monte Carlo over the common and idiosyncratic shocks).
+\end{algorithmic}
+\end{algorithm}
+
+\input{sections/params_table}
+
+\subsection{Parameter identification and calibration strategy}
+\label{sec:param_identification}
+
+While full empirical estimation is beyond the scope of this paper, we provide an identification argument showing which observable moments pin down the key structural parameters $(\kappa,\lambda,\phi,\sigma_\epsilon,\sigma_v)$ in principle. This clarifies what data would be needed for calibration and establishes the model's testability.
+
+\paragraph{Identification via observable moments.}
+Under the myopic mean-field equilibrium, the following moments are observable (or proxied) from price and volume data:
+
+\begin{enumerate}[label=(\arabic*)]
+\item \textbf{Return volatility $\mathrm{std}(r_t)$:} In the model, ``return'' is the price increment $r_t := \Delta p_t$ (value units). Empirically one often works with log returns $\Delta\log P_t$; for small moves, $\Delta\log P_t \approx \Delta P_t/P_t$, so a simple scaling can map model increments to empirical log-return units when needed. From \eqref{eq:anchored_impact}, the price increment variance is
+\[
+\Var(\Delta p_{t+1}\mid \mathcal F_t) \approx
+\Big(\kappa^2\,\Var(v_t-p_t\mid \mathcal F_t)+\lambda^2\,\Var(\bar x_t\mid \mathcal F_t)+\phi^2\Big)\Delta t
+\;+\;\text{cross terms},
+\]
+In steady state, $\mathrm{std}(r_t) = \mathrm{std}(\Delta p_t)$ depends on $\phi$ (direct noise trading), $\lambda$ (impact amplification), and $\kappa$ (mean reversion strength). The ratio $\lambda/\kappa$ can be identified from the relative contribution of demand-driven vs.\ fundamental-driven price variance.
+
+\item \textbf{Mean-reversion speed:} The autocorrelation of price deviations from a moving average of fundamentals (or a proxy like a slow-moving average of prices) identifies $\kappa$. Specifically, under \eqref{eq:anchored_impact}, the half-life of price deviations is approximately $(\ln 2)/\kappa$, so $\kappa$ can be estimated from the decay rate of price-f fundamental autocorrelations.
+\begin{equation}
+h = \frac{\ln 2}{\kappa},\qquad \kappa = \frac{\ln 2}{h}.
+\label{eq:half_life_conversion}
+\end{equation}
+
+\item \textbf{Impact coefficient $\lambda$:} The contemporaneous correlation between order flow (aggregate demand proxy) and price changes, normalized by the variance of order flow, identifies $\lambda$ up to the mean-field scaling. Volume proxies (e.g., signed volume or turnover) can serve as demand proxies.
+
+\item \textbf{Fundamental volatility $\sigma_v$:} The long-run variance of fundamentals (estimated from a slow-moving filter of prices or from fundamental proxies like earnings/dividends) identifies $\sigma_v$. Alternatively, $\sigma_v$ can be identified from the steady-state variance of the Kalman filter innovation process.
+
+\item \textbf{Signal noise $\sigma_\epsilon$:} The cross-sectional dispersion in beliefs (proxied by analyst forecast dispersion or survey-based disagreement) relative to the fundamental variance identifies the signal-to-noise ratio $\sigma_v/\sigma_\epsilon$. Given $\sigma_v$, this pins down $\sigma_\epsilon$.
+\end{enumerate}
+
+\paragraph{Identification chain (estimated vs.\ inferred vs.\ normalized).}
+From price-only data, one can (a) estimate $\kappa$ from a half-life diagnostic (item 2) and (b) calibrate the effective price/noise-trading volatility $\phi$ to match return volatility (item 1, after the unit mapping to log-return units if desired).
+Identifying $\lambda$ itself requires an order-flow proxy (item 3); given $\lambda$, the corresponding order-flow noise scale is inferred mechanically as $\sigma_\eta=\phi/\lambda$ (Section~II, microstructure sketch).
+In our numerical work, $\lambda$ is treated as a normalization choice (Table~\ref{tab:params}), and we therefore interpret $\phi$ as the empirically pinned-down price-noise scale conditional on that normalization.
+
+\subsection{Parameter regimes and stress diagnostics}
+\label{sec:meaningful_regions}
+
+% Label-only anchors for tables referenced elsewhere; the corresponding numerical tables are omitted in this review build.
+\refstepcounter{table}
+\label{tab:price_filter}
+\refstepcounter{table}
+\label{tab:mispricing_stress}
+
+\subsubsection{Targeted joint-move grid}
+\label{subsec:joint_grid}
+
+\subsection{Extensions and validation checks}
+\label{subsec:extensions}

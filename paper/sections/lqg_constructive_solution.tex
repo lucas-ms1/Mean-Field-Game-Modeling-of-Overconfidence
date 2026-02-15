@@ -1,0 +1,262 @@
+% LQG constructive solution: reduced state, fixed-point map, Picard algorithm.
+% Compatible with ieee_main.tex (uses \E, \R, \CARA, etc.).
+
+\subsection{Constructive LQG Solution via Picard Iteration}
+\label{sec:lqg_constructive}
+
+\paragraph{Benchmark (position impact; continuous time).}
+This subsection is a continuous-time constructive solver for a \emph{position-impact} formulation (it collapses stock and flow so that $\bar u\equiv \bar x$).
+It is included as a diagnostic/benchmark and is not used in the baseline discrete-time stock--flow simulations in Section~VI.
+
+\paragraph{Endogenous vs exogenous.}
+Mean demand $\bar x$, price $p$, and (from the equilibrium map) mispricing $\bar y = m - p$ and the coefficient $B_t$ (driven by $\bar x$) are \emph{endogenous}; in equilibrium, beliefs and the filter are consistent with the chosen information. Exogenous parameters include $\kappa$, $\lambda$, $\phi$, $\gamma$, and other primitives (e.g.\ $\sigma_v$, $\sigma_c$, $\sigma_\epsilon$, $k$). In this formulation, belief updating conditions only on the private signal $\xi$ and not on the price observation channel; hence the mean belief $m_t$ is not fed back by $\bar x$. Price is endogenous as an outcome of $\bar x$ but is not used as an observation in the filter; incorporating it would require joint filtering and a richer fixed-point formulation (see Section~IV).
+
+\paragraph{Reduced state and dynamics.}
+Define the (belief--price) mispricing state
+\begin{equation}
+y_t \;:=\; \hat v_t - p_t.
+\label{eq:y_reduced}
+\end{equation}
+We work in the homogeneous representative-agent setting with overconfidence parameter $k$, so $\hat v_t$ is the subjective Kalman estimate of $v_t$, $\Sigma_t$ is the perceived posterior variance, and $R':=\sigma_c^2+\sigma_\epsilon^2/k$ is the perceived measurement-noise variance. Wealth and state dynamics in innovation form are
+\begin{align}
+dW_t
+&= x_t\,\bigl(\kappa\,y_t + \lambda\,\bar x_t\bigr)\,dt + x_t\,\phi\,dI^p_t,
+\label{eq:W_dyn_reduced}\\
+dy_t
+&= \bigl(\mu_v - \kappa\,y_t - \lambda\,\bar x_t\bigr)\,dt + \beta_t\,dI^\xi_t - \phi\,dI^p_t,
+\label{eq:y_dyn_reduced}
+\end{align}
+where (under the agent's subjective filtering model in Appendix~A) $I^p$ and $I^\xi$ are independent Brownian motions (price and signal innovations). The (subjective) unhedgeable loading is
+\begin{equation}
+\beta_t \;=\; K_t\,\sqrt{\sigma_c^2+\sigma_\epsilon^2},\qquad
+K_t \;=\; \frac{\Sigma_t}{R'},\qquad
+R' \;=\; \sigma_c^2 + \frac{\sigma_\epsilon^2}{k},
+\label{eq:beta_K_R}
+\end{equation}
+and the perceived posterior variance $\Sigma_t$ solves the Riccati equation
+\begin{equation}
+\dot\Sigma_t \;=\; \sigma_v^2 - \frac{\Sigma_t^2}{R'},\qquad \Sigma_0\ge 0.
+\label{eq:Sigma_riccati}
+\end{equation}
+
+\paragraph{Fixed-point map and contraction.}
+Theorem~\ref{thm:MFG_fixed_point} provides the framework: existence, uniqueness, and convergence of the mean-field limit are from the black-box theory (assumptions (H1)--(H5)); the reduced dynamics \eqref{eq:W_dyn_reduced}--\eqref{eq:y_dyn_reduced}, Riccati \eqref{eq:Sigma_riccati}, and mean-field update \eqref{eq:barx_update} below are derived in our LQG setting. Given a candidate mean-field demand process $\bar x(\cdot)$, one can (i) solve the backward Riccati for $A_t$ (independent of $\bar x$), (ii) solve the backward linear ODE for $B_t$ driven by $\bar x_t$, (iii) simulate forward the coupled $(v_t,m_t,p_t)$ and hence $\bar y_t = m_t - p_t$, and (iv) update $\bar x$ via the mean-field consistency relation. This defines a fixed-point map $\Phi$ on trajectories $\bar x(\cdot)$.
+
+\paragraph{Fixed-point object.}
+The fixed-point object is the map $\Phi$ on the space $\mathcal X := L^2_{\mathcal F^0}(\Omega\times[0,T])$ of candidate mean-field demand trajectories (adapted to the common filtration $\mathcal F^0$), equipped with the norm
+\[
+\|\bar x\|_2 := \Big(\E\int_0^T |\bar x_t|^2\,dt\Big)^{1/2}.
+\]
+Equilibrium corresponds to the unique fixed point $\bar x^\star = \Phi(\bar x^\star)$ when the contraction condition $q<1$ below holds; see Proposition~\ref{prop:lqg_constructive}.
+
+\begin{proposition}[Constructive equilibrium under weak coupling / small horizon]
+\label{prop:lqg_constructive}
+Define the fixed-point map $\Phi$ on $\bar x(\cdot)$ as follows. Given $\bar x(\cdot)$:
+\begin{enumerate}[label=(\roman*)]
+\item Solve backward the Riccati equation for $A_t$ with terminal condition $A_T=0$ (as in the $A$-ODE of the exact \CARA/\LQG\ formulation).
+\item Solve backward the linear ODE for $B_t$ driven by $\bar x_t$, with terminal condition $B_T=0$.
+\item Solve forward the dynamics for $(v_t,m_t,p_t)$ given $\bar x_t$, and set $\bar y_t = m_t - p_t$.
+\item Update via mean-field consistency:
+\begin{equation}
+\bar x_t \;=\; \frac{(\kappa + \phi^2 A_t)\,\bar y_t + \phi^2 B_t}{\gamma\,\phi^2 - \lambda}.
+\label{eq:barx_update}
+\end{equation}
+\end{enumerate}
+Define
+\begin{equation}
+q \;:=\; \frac{\lambda T}{\gamma\phi^2-\lambda}\,\bigl(2\kappa+\kappa^2 T\bigr).
+\label{eq:q_contract}
+\end{equation}
+If $\gamma\phi^2>\lambda$ and $q<1$, then $\Phi$ is a contraction on the space $\mathcal X := L^2_{\mathcal F^0}(\Omega\times[0,T])$ and the fixed point exists and is unique; Picard iteration converges.
+\end{proposition}
+
+\begin{proof}
+We make the contraction argument fully explicit.
+
+\medskip\noindent
+\textbf{Functional-analytic setup.}
+Fix a filtered probability space $(\Omega,\mathcal F,\mathcal F^0,\Prob)$ supporting the common shocks
+(e.g.\ $(W,U,Z)$ as in \eqref{eq:v_dyn_ct}--\eqref{eq:p_dyn_ct}) and the cross-sectional private noises.
+Let $\mathcal F^0=(\mathcal F^0_t)_{t\in[0,T]}$ be the (common) market filtration containing the common shocks.
+Define the Banach space
+\[
+\mathcal X := L^2_{\mathcal F^0}(\Omega\times[0,T]),\qquad
+\|\bar x\|_2 := \Big(\E\int_0^T |\bar x_t|^2\,dt\Big)^{1/2}.
+\]
+(If one prefers to restrict to deterministic mean-field trajectories $\bar x:[0,T]\to\mathbb R$, the same proof applies
+ verbatim with $\|\bar x\|_{L^2([0,T])}:=(\int_0^T|\bar x_t|^2dt)^{1/2}$.)
+
+Assume $\gamma\phi^2>\lambda$, so the denominator in \eqref{eq:barx_update} is strictly positive.
+Also assume $\beta$ is $\mathcal F^0$-progressively measurable and bounded on $[0,T]$ (this holds under the constant-gain
+closure \eqref{eq:mean_field_closure}, or any bounded-gain filtering specification used in Sections III--IV).
+
+\medskip\noindent
+\textbf{Step 1: Riccati well-posedness and a uniform bound for $A$.}
+In the homogeneous case, $A_t$ solves \eqref{eq:A_ode} with terminal condition $A_T=0$:
+\[
+-\dot A_t=\frac{\kappa^2}{\phi^2}-\beta_t^2 A_t^2,\qquad A_T=0.
+\]
+Set $\widetilde A_s := A_{T-s}$ for $s\in[0,T]$. Then
+\[
+\dot{\widetilde A}_s=\frac{\kappa^2}{\phi^2}-\beta_{T-s}^2\,\widetilde A_s^2,\qquad \widetilde A_0=0.
+\]
+\emph{Nonnegativity.} The vector field $f(s,a):=\kappa^2/\phi^2-\beta_{T-s}^2a^2$ is continuous in $s$ and locally
+Lipschitz in $a$, hence solutions are unique. Moreover $f(s,0)=\kappa^2/\phi^2>0$ for all $s$, so starting from
+$\widetilde A_0=0$ the solution becomes strictly positive immediately. If it ever became negative, let
+$\tau:=\inf\{s>0:\widetilde A_s=0\}$ be the first return time to $0$ from above. Then $\dot{\widetilde A}_\tau=f(\tau,0)>0$,
+so the trajectory points into the positive half-line at $\tau$, contradicting the definition of $\tau$. Thus
+$\widetilde A_s\ge 0$ for all $s\in[0,T]$, hence $A_t\ge 0$ for all $t$.
+\emph{Coarse bound.} Because the quadratic term is nonnegative,
+\[
+\dot{\widetilde A}_s \le \frac{\kappa^2}{\phi^2}
+\quad\Longrightarrow\quad
+0\le \widetilde A_s \le \frac{\kappa^2}{\phi^2}s,
+\]
+hence
+\[
+0\le A_t \le \frac{\kappa^2}{\phi^2}(T-t)\le \frac{\kappa^2}{\phi^2}T
+\qquad\text{for all }t\in[0,T].
+\]
+In particular, $A\in L^\infty([0,T])$ and $\|A\|_\infty\le \kappa^2 T/\phi^2$.
+
+\medskip\noindent
+\textbf{Step 2: Precise assumption on mean belief and the $\bar y$-Lipschitz bound.}
+Recall $\bar y_t := m_t-p_t$ in Proposition~III.7.
+
+In the myopic formulation of Section~IV.B, belief updating (Appendix~A) is conditioned only on the private signal
+$\xi_{i,t}$ (and not on the endogenous price observation channel). Under this modeling choice,
+the mean belief process $m_t=\int_0^1\hat v_{i,t}\,di$ is independent of the mean-field demand input $\bar x$; i.e.\ for
+two inputs $\bar x,\bar x'\in\mathcal X$ we have $m\equiv m'$.
+
+(If one prefers not to hard-code this, it suffices to assume instead that $\bar x\mapsto m$ is Lipschitz in
+$\|\cdot\|_2$ with constant $C_mT$; the bound below then holds with $\lambda$ replaced by $\lambda+C_m$.)
+
+Now fix $\bar x,\bar x'\in\mathcal X$. Couple the two forward systems on the same probability space with the same common
+shocks and identical initial conditions $(v_0,p_0)$. Subtracting the price equations \eqref{eq:p_dyn_ct} yields, pathwise,
+\[
+d(p_t-p_t') = -\kappa(p_t-p_t')\,dt + \lambda(\bar x_t-\bar x_t')\,dt,\qquad (p_0-p_0')=0,
+\]
+since the common noise term $\phi\,dZ_t$ cancels under this coupling.
+Solving gives
+\[
+|p_t-p_t'|
+\le \lambda\int_0^t e^{-\kappa(t-s)}|\bar x_s-\bar x_s'|\,ds
+\le \lambda\int_0^t|\bar x_s-\bar x_s'|\,ds
+\le \lambda\sqrt{t}\Big(\int_0^t|\bar x_s-\bar x_s'|^2\,ds\Big)^{1/2}.
+\]
+Squaring and integrating in $t$, then using Fubini, yields
+\[
+\int_0^T |p_t-p_t'|^2\,dt
+\le \lambda^2\int_0^T t\int_0^t|\bar x_s-\bar x_s'|^2\,ds\,dt
+\le \lambda^2T^2\int_0^T|\bar x_s-\bar x_s'|^2\,ds.
+\]
+Taking expectations gives $\|p-p'\|_2\le \lambda T\|\bar x-\bar x'\|_2$.
+Because $m\equiv m'$, we have $\bar y-\bar y'=-(p-p')$, hence
+\[
+\|\bar y-\bar y'\|_2 \le \lambda T\|\bar x-\bar x'\|_2.
+\]
+
+\medskip\noindent
+\textbf{Step 3: $B$-Lipschitz bound in $\bar x$.}
+Given $A$ (which does not depend on $\bar x$) and $\beta$ (independent of $\bar x$ under the same information closure as
+above), $B_t$ solves \eqref{eq:B_ode} with terminal condition $B_T=0$:
+\[
+-\dot B_t=\frac{\kappa\lambda}{\phi^2}\bar x_t+\mu_v A_t-\beta_t^2A_tB_t,\qquad B_T=0.
+\]
+(If $\beta$ is allowed to depend on $\bar x$, an additional Lipschitz term appears; the same contraction logic goes
+through with a larger constant.)
+
+Let $B,B'$ be the solutions corresponding to $\bar x,\bar x'$ and set $\Delta B:=B-B'$.
+Subtracting the ODEs gives
+\[
+-\dot{\Delta B}_t=\frac{\kappa\lambda}{\phi^2}(\bar x_t-\bar x_t')-\beta_t^2A_t\,\Delta B_t,\qquad \Delta B_T=0.
+\]
+By integrating factor,
+\[
+\Delta B_t=\frac{\kappa\lambda}{\phi^2}\int_t^T
+\exp\!\Big(-\int_t^s \beta_u^2A_u\,du\Big)\,(\bar x_s-\bar x_s')\,ds.
+\]
+Since $A_u\ge 0$ and $\beta_u^2\ge 0$, the exponential factor is at most $1$, yielding
+\[
+|B_t-B_t'|
+\le \frac{\kappa\lambda}{\phi^2}\int_t^T|\bar x_s-\bar x_s'|\,ds
+\le \frac{\kappa\lambda}{\phi^2}\sqrt{T-t}\Big(\int_t^T|\bar x_s-\bar x_s'|^2\,ds\Big)^{1/2}.
+\]
+Squaring and integrating in $t$, then using Fubini, yields $\|B-B'\|_2 \le (\kappa\lambda/\phi^2)\,T\,\|\bar x-\bar x'\|_2$.
+
+\medskip\noindent
+\textbf{Step 4: Contraction estimate for $\Phi$ and a fully checkable sufficient condition.}
+Recall \eqref{eq:barx_update}:
+\[
+\Phi(\bar x)_t
+=
+\frac{(\kappa+\phi^2A_t)\bar y_t+\phi^2 B_t}{\gamma\phi^2-\lambda}.
+\]
+Using $\gamma\phi^2-\lambda>0$, boundedness of $A$, and the triangle inequality,
+\[
+\|\Phi(\bar x)-\Phi(\bar x')\|_2
+\le
+\frac{(\kappa+\phi^2\|A\|_\infty)\|\bar y-\bar y'\|_2+\phi^2\|B-B'\|_2}{\gamma\phi^2-\lambda}.
+\]
+Substituting the bounds from Steps 2--3 gives
+\[
+\|\Phi(\bar x)-\Phi(\bar x')\|_2
+\le
+\frac{\lambda T}{\gamma\phi^2-\lambda}\Big(2\kappa+\phi^2\|A\|_\infty\Big)\,\|\bar x-\bar x'\|_2.
+\]
+Finally, using $\|A\|_\infty\le \kappa^2T/\phi^2$ from Step 1 yields the parameter-only bound
+\[
+\|\Phi(\bar x)-\Phi(\bar x')\|_2
+\le
+q\,\|\bar x-\bar x'\|_2,
+\qquad
+q:=\frac{\lambda T}{\gamma\phi^2-\lambda}\Big(2\kappa+\kappa^2T\Big),
+\]
+which is fully checkable from primitives.
+
+\medskip\noindent
+\textbf{Step 5: Banach fixed point.}
+If $q<1$, then $\Phi$ is a contraction on $(\mathcal X,\|\cdot\|_2)$, hence admits a unique fixed point
+$\bar x^\star\in\mathcal X$. Moreover, the Picard iteration $\bar x^{n+1}=\Phi(\bar x^n)$ converges geometrically to
+$\bar x^\star$ in $\|\cdot\|_2$.
+
+\medskip\noindent
+\textbf{Remark (relation to the simpler myopic scaling).}
+In the myopic closure where hedging terms are suppressed ($A\equiv 0$, $B\equiv 0$), the Lipschitz estimate tightens to
+a pure $O(T)$ scaling proportional to $\kappa\lambda/(\gamma\phi^2-\lambda)$, matching the heuristic
+small-horizon/weak-coupling condition discussed around \eqref{eq:q_contract}.
+\end{proof}
+
+\paragraph{Picard iteration.}
+A conservative Lipschitz bound is $q$ in \eqref{eq:q_contract}; for $q<1$, Banach yields uniqueness.
+Algorithm~\ref{alg:picard} summarizes the procedure. We initialize a candidate $\bar x^0(\cdot)$ (e.g., identically zero or the myopic closure $\bar x_t^0 = \kappa\bar y_t^0/(\gamma\phi^2-\lambda)$ from a forward run with $\bar x\equiv 0$), then iterate: compute $\Sigma,K,\beta$ from \eqref{eq:Sigma_riccati}--\eqref{eq:beta_K_R}, solve $A$ backward, solve $B$ backward using the current $\bar x^n$, forward-simulate $(v,m,p)$ and $\bar y^n$, update $\bar x^{n+1}$ via \eqref{eq:barx_update}, and stop when the residual (e.g., $\|\bar x^{n+1}-\bar x^n\|$ in $L^2$ or sup-norm over the time grid) is below a tolerance.
+
+\begin{algorithm}[t]
+\caption{Picard iteration for LQG mean-field equilibrium}
+\label{alg:picard}
+\begin{algorithmic}[1]
+\STATE \textbf{Input:} Horizon $T$, parameters $(\kappa,\lambda,\gamma,\phi,\mu_v,\sigma_v,\sigma_c,\sigma_\epsilon,k)$, initial conditions $(v_0,p_0,\hat v_0,\Sigma_0)$, tolerance $\epsilon$, max iterations $N_{\max}$.
+\STATE \textbf{Initialize:} Set $\bar x^0_t \gets 0$ (or myopic seed) for $t\in[0,T]$. Set $n\gets 0$.
+\REPEAT
+\STATE Compute $\Sigma_t$, $K_t$, $\beta_t$ on $[0,T]$ from \eqref{eq:Sigma_riccati} and \eqref{eq:beta_K_R}.
+\STATE Solve backward for $A_t$ (Riccati, $A_T=0$).
+\STATE Solve backward for $B_t$ given $\bar x^n_t$ (linear ODE, $B_T=0$).
+\STATE Forward-simulate $(v_t,m_t,p_t)$ and $\bar y^n_t = m_t - p_t$ using $\bar x^n_t$ in the dynamics.
+\STATE Update $\bar x^{n+1}_t \gets \frac{(\kappa+\phi^2 A_t)\bar y^n_t + \phi^2 B_t}{\gamma\phi^2-\lambda}$ for $t\in[0,T]$.
+\STATE Compute residual $r_n \gets \|\bar x^{n+1}-\bar x^n\|$ (e.g., $L^2$ or sup over grid).
+\STATE $n \gets n+1$.
+\UNTIL{$r_{n-1}<\epsilon$ or $n\ge N_{\max}$}
+\STATE \textbf{Output:} Equilibrium mean-field demand $\bar x^* \approx \bar x^n$ and associated $(A,B,\bar y)$.
+\end{algorithmic}
+\end{algorithm}
+
+\paragraph{Implementation and reproducibility.}
+The Picard iteration in Algorithm~\ref{alg:picard} is implemented in a MATLAB script; the path and run instructions will be specified in the replication package. All reported equilibrium paths and statistics use this routine with a fixed tolerance and time discretization.
+
+\subsection{Reproducibility and numerical verification}
+The equilibrium is computed via Algorithm 1 implemented in \ifjeicblind the replication package (link omitted for blind review)\else \path{code/matlab/mfg_lqg_common_noise_demo.m}\fi.
+Diagnostics include the fixed-point residual along Picard iterates, a time-step refinement test under decreasing $dt$, and an $N$-convergence test comparing particle moments to the mean-field limit.\footnote{Outputs and plots can be regenerated by running the script.}
+
+\paragraph{Remark (discrete-time certification).}
+At the discrete-time level, uniqueness of the numerical fixed point can be certified via a Banach fixed-point argument on trajectories endowed with a sup-norm metric.
+We provide a machine-checkable backbone for this contraction argument \ifjeicblind (link omitted for blind review)\else in \texttt{lean/MFGContraction.lean}\fi; it does not attempt to formalize the full stochastic propagation-of-chaos theorem.

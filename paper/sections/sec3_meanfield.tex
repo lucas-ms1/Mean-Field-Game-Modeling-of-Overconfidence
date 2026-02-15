@@ -1,0 +1,250 @@
+% Section 3: Mean-Field Approximation and Limiting Equations
+
+\subsection{Mean-Field Object Under Common Noise}
+
+Because the model includes common shocks $(W_t,U_t,Z_t)$ through the fundamental, correlated signals, and price noise, the appropriate mean-field object is the \emph{conditional} population law given the common filtration $\mathcal{F}^0_t := \sigma(W_s,U_s,Z_s: s\le t)$. Concretely, let $X_{i,t}:=(\hat v_{i,t},\Sigma_{i,t},k_i)$ denote investor $i$'s internal state (belief, perceived uncertainty, and overconfidence type), and define the mean-field flow
+\begin{equation}
+\mu_t := \Law(X_{i,t}\mid \mathcal{F}^0_t).
+\end{equation}
+The conditional mean belief $m_t := \int \hat v\,\mu_t(d\hat v\,d\Sigma\,dk)$ enters the price dynamics through the mean trading rate $\bar u_t$ appearing in \eqref{eq:anchored_impact}; inventories and trading rates are linked by the stock--flow timing in Subsubsection~\ref{subsubsec:timing_stock_flow}.
+
+\subsection{Mean-Field Equilibrium (Common-Noise Formulation)}
+
+Fix a candidate flow $\{\mu_t\}_{t\in[0,T]}$ and the resulting price process $\{p_t\}$ from \eqref{eq:anchored_impact}. In the bounded-rational formulation of this paper, the representative agent does not solve a full intertemporal control problem; instead, given $\{\mu_t\}$ and $\{p_t\}$ the agent applies the myopic rule from Section~IV, yielding a feedback $x_{i,t} = x^{\mathrm{myopic}}(t,X_{i,t},p_t,\mu_t)$. The induced controlled state process generates a new conditional flow $\{\tilde\mu_t\}$. A myopic mean-field equilibrium is a fixed point $\mu=\tilde\mu$.
+
+In common-noise settings, $\mu_t$ is random and its evolution is governed by a stochastic Kolmogorov forward equation (stochastic Fokker--Planck / SPDE) for the conditional law; see, e.g., \cite{CarmonaDelarueMFGVol1,Lacker2016}. In Section~VI we compute equilibrium statistics using a particle approximation: simulate a large $N$-agent system driven by shared $(W,Z)$ and independent $\{B_i\}$ and estimate $\mu_t$ via the empirical measure.
+
+\paragraph{Scope of theoretical results.}
+To avoid confusion, we explicitly state what this paper establishes and what it does not claim.
+\textbf{Baseline object (what we compute and simulate):} a discrete-time, stock--flow myopic equilibrium with inventory carryover and flow-based impact. The per-step mean-field fixed point is scalar and has a unique solution when $0\le B_t<\Delta t$ (Theorem~\ref{thm:contraction}); under this condition the full discrete-time particle system is well-posed (Theorem~\ref{thm:well_posed}).
+\textbf{Benchmarks (for comparison only):} we also record a continuous-time position-impact benchmark (which collapses stock and flow) where the mean-field closure becomes algebraic and admits an explicit closed form and condition (Theorem~\ref{thm:cn_fp}); this benchmark is not used in the baseline simulations.
+\textbf{What we do not claim:} This paper does not establish existence or uniqueness of a full optimal-control MFG equilibrium under intertemporal exponential utility maximization with endogenous filtering on prices. The myopic rule \eqref{eq:myopic_policy} is a bounded-rational approximation; Subsection~\ref{subsec:ct_cara_lqg} and Subsection~\ref{subsec:ct_flow_control_extension} provide constructive continuous-time comparisons, but a complete verification of existence/uniqueness conditions for those intertemporal MFG couplings would strengthen the theoretical foundation.
+
+\subsection{Discrete-Time Myopic Mean-Field Equilibrium (What We Compute)}
+
+The numerical experiments in Section~VI implement a discrete-time, bounded-rational equilibrium concept consistent with the myopic rule in Section~IV. Fix a time grid $t=0,1,\dots,T$ (step size $\Delta t=1$ in the implementation) and consider the $N$-agent system induced by:
+(i) fundamental and price updates (Euler discretization of \eqref{eq:anchored_impact}),
+(ii) private-signal observations (normalized increments $z_{i,t}=(\xi_{i,t+\Delta t}-\xi_{i,t})/\Delta t$) and Kalman belief updates (Appendix~A), and
+(iii) the myopic inventory rule \eqref{eq:myopic_policy} with the per-step stock--flow fixed point (Proposition~\ref{prop:step_fixed_point}).
+
+\textbf{Definition (myopic mean-field equilibrium, discrete time).}
+Given a pre-trade mean inventory $\bar x_{t^-}$ and public price $p_t$, agent $i$ computes a belief state $(\hat v_{i,t},\Sigma_{i,t})$ and chooses a post-trade inventory $x_{i,t}$ according to the myopic rule, which depends on the mean trading rate $\bar u_t$. A discrete-time myopic mean-field equilibrium at time $t$ is a pair $(\bar x_t,\bar u_t)$ such that
+\[
+\bar x_t = \frac{1}{N}\sum_{i=1}^N x_{i,t},
+\qquad
+\bar u_t=\frac{\bar x_t-\bar x_{t^-}}{\Delta t},
+\]
+with individual choices consistent with $\bar u_t$. In the implementation the rule is linear in $\bar u_t$ and the scalar fixed point is computed in closed form (Proposition~\ref{prop:step_fixed_point}).
+
+\subsection{Discrete-Time Well-Posedness (Existence and Uniqueness of Paths)}
+
+We formalize the particle implementation as a coupled discrete-time dynamical system on a fixed time grid.
+
+\textbf{Assumptions.}
+Fix $T\in\mathbb N$ and $\Delta t>0$ and assume:
+(A1) parameters satisfy $\kappa>0$, $\phi>0$, $\gamma>0$, $\alpha_0>0$ and initial conditions $(v_0,p_0,\{\hat v_{i,0},\Sigma_{i,0}\}_{i=1}^N)$ are finite with $\Sigma_{i,0}\ge 0$;
+(A2) beliefs evolve via the discrete-time Kalman recursion in Appendix~A (so $(\hat v_{i,t},\Sigma_{i,t})$ is uniquely defined given $(\hat v_{i,t-1},\Sigma_{i,t-1})$ and the signal);
+(A3) for each $t$, the per-step stock--flow map admits a unique fixed point $\bar x_t$ (and hence $\bar u_t$), e.g., the contraction condition $0\le B_t<\Delta t$ in Theorem~\ref{thm:contraction} holds;
+(A4) price and fundamental updates are given by the Euler discretizations of their SDEs driven by specified shock sequences.
+
+\begin{theorem}[Well-posedness of the discrete-time particle system]
+\label{thm:well_posed}
+Under (A1)--(A4), for any realization of the common and idiosyncratic shock sequences, the discrete-time system defined by: (i) belief update (Appendix~A), (ii) per-step myopic mean-field fixed point (Proposition~\ref{prop:step_fixed_point}), and (iii) Euler updates for $(v_t,p_t)$, admits a unique adapted solution path
+\[
+(v_t,p_t,\{\hat v_{i,t},\Sigma_{i,t}\}_{i=1}^N,\bar x_t,\bar u_t)_{t=0}^T.
+\]
+\end{theorem}
+
+\subsection{Position-impact benchmark: common-noise fixed-point verification (continuous time)}\label{sec:cn_fp_verification}
+
+This section is a diagnostic benchmark using the legacy position-impact closure; the baseline simulations use the discrete-time stock--flow equilibrium with uniqueness condition $0\le B_t<\Delta t$ (Proposition~\ref{prop:step_fixed_point}, Theorem~\ref{thm:contraction}).
+
+This subsection records a self-contained fixed-point verification for a continuous-time \emph{position-impact} benchmark (which collapses stock and flow so that $\bar u_t\equiv \bar x_t$).
+It is included for comparison and is not used in the baseline simulations, which use the discrete-time stock--flow closure above.
+The key point is that, in our information simplification (filtering on $\xi^i$ only),
+the belief state dynamics are \emph{conditionally i.i.d.} given the common filtration, so the mean-field
+object is the conditional law and the equilibrium closure reduces to an explicit algebraic fixed point.
+
+\paragraph{Common and idiosyncratic noises.}
+Recall the common filtration
+\[
+\mathcal F^0_t := \sigma(W_s,U_s,Z_s:\; s\le t),
+\]
+and idiosyncratic signal noises $\{B^i\}_{i\ge 1}$ independent across $i$ and independent of $(W,U,Z)$.
+
+\paragraph{Finite-$N$ (continuous-time) price-taking system.}
+Consider the $N$-agent system (continuous time) with a \emph{price-taking} interaction through the
+average demand $\bar x^N_t := \frac1N\sum_{j=1}^N x^{j,N}_t$:
+\begin{align}
+dv_t &= \mu_v\,dt + \sigma_v\,dW_t, \label{eq:cn_v}\\
+d\xi^i_t &= v_t\,dt + \sigma_c\,dU_t + \sigma_\epsilon\,dB^i_t,\qquad i=1,\dots,N, \label{eq:cn_signal}\\
+dp^N_t &= \kappa(v_t-p^N_t)\,dt + \lambda \bar x^N_t\,dt + \phi\,dZ_t. \label{eq:cn_priceN}
+\end{align}
+Agents compute the subjective Kalman--Bucy filter (Appendix~A) from \eqref{eq:cn_signal}:
+\begin{equation}\label{eq:cn_filter}
+\begin{split}
+d\hat v^{i}_t &= \mu_v\,dt + K_t^{(i)}\bigl(d\xi^i_t - \hat v^{i}_t\,dt\bigr),\\
+K_t^{(i)} &:= \frac{\Sigma_t^{(i)}}{R^{\prime}_i},\quad R^{\prime}_i:=\sigma_c^2+\sigma_\epsilon^2/k_i.
+\end{split}
+\end{equation}
+with Riccati $\dot\Sigma_t^{(i)}=\sigma_v^2-(\Sigma_t^{(i)})^2/R_i'$ and $\Sigma_0^{(i)}\ge 0$.
+(For a homogeneous population, $k_i\equiv k$ and hence $K_t^{(i)}\equiv K_t$ and $\Sigma_t^{(i)}\equiv \Sigma_t$
+are deterministic.)
+
+Given $(p^N_t,\bar x^N_t)$, the (benchmark) myopic CARA rule under Gaussian price increments (with $\chi=0$ and $\Var(dp_t\mid\mathcal F_t^i)/dt=\phi^2$) prescribes the pointwise best response
+\begin{equation}\label{eq:cn_myopic_BR}
+x^{i,N}_t
+= \frac{\kappa(\hat v^i_t-p^N_t)+\lambda \bar x^N_t}{\gamma\phi^2},
+\qquad i=1,\dots,N.
+\end{equation}
+Averaging \eqref{eq:cn_myopic_BR} yields the \emph{per-time} fixed point
+\begin{equation}\label{eq:cn_fpN}
+(\gamma\phi^2-\lambda)\,\bar x^N_t = \kappa(\hat m^N_t-p^N_t),
+\qquad
+\hat m^N_t:=\frac1N\sum_{i=1}^N \hat v^i_t,
+\end{equation}
+so whenever $\gamma\phi^2>\lambda$,
+\begin{equation}\label{eq:cn_barxN_closed}
+\bar x^N_t = \frac{\kappa}{\gamma\phi^2-\lambda}\,(\hat m^N_t-p^N_t).
+\end{equation}
+
+\paragraph{Mean-field (conditional-law) system.}
+Define the representative-agent belief state $\hat v_t$ solving \eqref{eq:cn_filter} with an independent copy
+$B$ (and the same common noises $(W,U,Z)$), and define the conditional flow
+\[
+\begin{aligned}
+\mu_t &:= \mathcal L\bigl(\hat v_t,\Sigma_t,k \,\big|\, \mathcal F^0_t\bigr),\\
+m_t &:= \int \hat v\,\mu_t(d\hat v\,d\Sigma\,dk)=\mathbb E[\hat v_t\mid \mathcal F^0_t].
+\end{aligned}
+\]
+The mean-field price satisfies
+\begin{equation}\label{eq:cn_price_limit}
+dp_t = \kappa(v_t-p_t)\,dt + \lambda \bar x_t\,dt + \phi\,dZ_t,
+\end{equation}
+where $\bar x_t$ is required to satisfy the mean-field consistency condition
+\begin{equation}\label{eq:cn_mf_consistency}
+\bar x_t
+= \int \frac{\kappa(\hat v-p_t)+\lambda \bar x_t}{\gamma\phi^2}\ \mu_t(d\hat v\,d\Sigma\,dk).
+\end{equation}
+Since only the mean of $\hat v$ enters \eqref{eq:cn_mf_consistency}, the fixed point reduces to
+\begin{equation}\label{eq:cn_barx_closed}
+\bar x_t = \frac{\kappa}{\gamma\phi^2-\lambda}\,(m_t-p_t), \qquad \text{assuming }\gamma\phi^2>\lambda.
+\end{equation}
+
+\begin{theorem}[Common-noise fixed point]\label{thm:cn_fp}
+Assume $\gamma\phi^2>\lambda$ and $\sup_{i\le N}\mathbb E[|\hat v^i_0|^2]<\infty$ with
+$\sup_{i\le N}\Sigma^{(i)}_0<\infty$.
+For simplicity, assume initial belief states are i.i.d.\ across $i$ conditional on $\mathcal F^0_0$.
+Then:
+
+\smallskip
+\noindent\textup{(i) (Well-posedness.)} The $N$-agent system \eqref{eq:cn_v}--\eqref{eq:cn_priceN} with
+controls given by the myopic fixed point \eqref{eq:cn_myopic_BR} admits a unique strong solution, and the limiting
+mean-field (conditional-law) system consisting of \eqref{eq:cn_v}, a representative signal equation of the form \eqref{eq:cn_signal} (with an independent idiosyncratic Brownian motion), the representative filter \eqref{eq:cn_filter}, and the price equation \eqref{eq:cn_price_limit} with $\bar x$ given by \eqref{eq:cn_barx_closed} admits a unique strong solution.
+
+\smallskip
+\noindent\textup{(ii) (Fixed-point verification.)} The process $\bar x$ defined by \eqref{eq:cn_barx_closed} is the unique solution
+to the mean-field consistency equation \eqref{eq:cn_mf_consistency} (i.e., a unique myopic common-noise MFG fixed point).
+
+\smallskip
+\noindent\textup{(iii) (Conditional propagation of chaos / LLN.)} Let the empirical measure of belief states be
+$\mu^N_t := \frac1N\sum_{i=1}^N \delta_{(\hat v^i_t,\Sigma^{(i)}_t,k_i)}$. Then for each fixed $t$,
+\[
+\mu^N_t \xrightarrow[N\to\infty]{} \mu_t
+\quad\text{in probability, and}\quad
+\hat m^N_t \to m_t \ \text{in }L^2.
+\]
+Consequently, $\bar x^N_t\to \bar x_t$ in $L^2$ and $p^N_t\to p_t$ in $L^2$ uniformly on $[0,T]$.
+
+\end{theorem}
+
+\begin{proof}
+\emph{Step 1 (Well-posedness).}
+For each $i$, the filter SDE \eqref{eq:cn_filter} is linear with adapted coefficients and admits a unique strong solution
+with finite second moments; the Riccati equation is a scalar ODE with global solution (Appendix~A).
+Given $\bar x^N$ and $p^N$, the control \eqref{eq:cn_myopic_BR} is affine in $(\hat v^i,p^N,\bar x^N)$.
+The averaging identity \eqref{eq:cn_fpN} yields the explicit closure \eqref{eq:cn_barxN_closed} when
+$\gamma\phi^2>\lambda$. Substituting \eqref{eq:cn_barxN_closed} into \eqref{eq:cn_priceN} gives a linear SDE for $p^N$
+driven by $(W,U,Z)$ and the averaged belief $\hat m^N$, hence a unique strong solution. Likewise, substituting
+\eqref{eq:cn_barx_closed} into \eqref{eq:cn_price_limit} gives a linear SDE for $p$ driven by $(W,U,Z)$ and $m$.
+
+\emph{Step 2 (Fixed point).}
+Equation \eqref{eq:cn_mf_consistency} is affine in $\bar x_t$:
+\[
+\bar x_t = \frac{\kappa(m_t-p_t)+\lambda \bar x_t}{\gamma\phi^2}.
+\]
+Rearranging gives $(\gamma\phi^2-\lambda)\bar x_t=\kappa(m_t-p_t)$ and thus \eqref{eq:cn_barx_closed}.
+Uniqueness follows since $\gamma\phi^2-\lambda>0$.
+
+\emph{Step 3 (Conditional LLN / propagation of chaos).}
+Conditional on $\mathcal F^0_t$, the idiosyncratic noises $\{B^i\}$ are independent and the filter equations
+\eqref{eq:cn_filter} are driven by independent Brownian motions with the \emph{same} common coefficients and common path
+$(W,U,Z)$. Hence the collection $\{(\hat v^i_t,\Sigma^{(i)}_t,k_i)\}_{i=1}^N$ is i.i.d.\ conditional on $\mathcal F^0_t$
+(with law $\mu_t$), and the conditional law of large numbers implies $\mu^N_t\Rightarrow \mu_t$ and
+\[
+ \mathbb E\bigl[|\hat m^N_t-m_t|^2\mid \mathcal F^0_t\bigr]
+ = \frac{1}{N}\,\mathrm{Var}(\hat v_t\mid \mathcal F^0_t),
+ \]
+ so $\hat m^N_t\to m_t$ in $L^2$. Moreover, by Step 1 we have $\sup_{t\le T}\mathbb E[\hat v_t^2]<\infty$, hence
+ $\sup_{t\le T}\mathbb E[\mathrm{Var}(\hat v_t\mid \mathcal F^0_t)]\le \sup_{t\le T}\mathbb E[\hat v_t^2]<\infty$ and therefore
+ \[
+ \sup_{t\le T}\mathbb E|\hat m^N_t-m_t|^2 \le \frac{C_T}{N},
+ \qquad
+ \int_0^T \mathbb E|\hat m^N_s-m_s|^2\,ds \le \frac{TC_T}{N}\xrightarrow[N\to\infty]{}0.
+ \]
+
+\emph{Step 4 (Price convergence).}
+Let $C:=\kappa/(\gamma\phi^2-\lambda)$ so that \eqref{eq:cn_barxN_closed}--\eqref{eq:cn_barx_closed} read
+$\bar x^N_t=C(\hat m^N_t-p^N_t)$ and $\bar x_t=C(m_t-p_t)$. Substituting these into
+\eqref{eq:cn_priceN} and \eqref{eq:cn_price_limit} gives the closed price equations
+\[
+dp^N_t = \kappa(v_t-p^N_t)\,dt + \lambda C(\hat m^N_t-p^N_t)\,dt + \phi\,dZ_t,
+\qquad
+dp_t = \kappa(v_t-p_t)\,dt + \lambda C(m_t-p_t)\,dt + \phi\,dZ_t.
+\]
+Subtracting yields a linear ODE for $\Delta p_t:=p^N_t-p_t$ driven by $\Delta m_t:=\hat m^N_t-m_t$:
+\[
+d\Delta p_t = -(\kappa+\lambda C)\Delta p_t\,dt + \lambda C\,\Delta m_t\,dt.
+\]
+By variation of constants, for $t\in[0,T]$,
+\[
+\Delta p_t = e^{-(\kappa+\lambda C)t}\Delta p_0 + \lambda C\int_0^t e^{-(\kappa+\lambda C)(t-s)}\Delta m_s\,ds.
+\]
+Assuming matching initial conditions ($\Delta p_0=0$), Jensen and Cauchy--Schwarz imply
+\[
+\sup_{t\le T}\mathbb E|p^N_t-p_t|^2
+ \ \le\ (\lambda C)^2 T \int_0^T \mathbb E|\hat m^N_s-m_s|^2\,ds
+ \ \xrightarrow[N\to\infty]{}\ 0,
+ \]
+and the $L^2$ uniform convergence follows.
+
+\emph{Step 5 (Mean-field action convergence).}
+Using again $\bar x^N_t=C(\hat m^N_t-p^N_t)$ and $\bar x_t=C(m_t-p_t)$,
+\[
+\bar x^N_t-\bar x_t
+=C\bigl[(\hat m^N_t-m_t)-(p^N_t-p_t)\bigr].
+\]
+Thus, by Step 3 and Step 4,
+\[
+\sup_{t\le T}\mathbb E|\bar x^N_t-\bar x_t|^2
+\le 2C^2\left(\sup_{t\le T}\mathbb E|\hat m^N_t-m_t|^2+\sup_{t\le T}\mathbb E|p^N_t-p_t|^2\right)
+\xrightarrow[N\to\infty]{}0.
+\]
+\end{proof}
+
+\begin{remark}[Stochastic Fokker--Planck equation for $\mu_t$]\label{rem:cn_spde}
+For any test function $\varphi\in C_b^2(\mathbb R\times \mathbb R_+\times \mathbb R_+)$,
+the conditional law $\mu_t=\mathcal L(\hat v_t,\Sigma_t,k\mid \mathcal F^0_t)$ satisfies the common-noise SPDE
+(in weak form)
+\[
+\begin{aligned}
+d\langle \mu_t,\varphi\rangle
+&= \Big\langle \mu_t,\bigl(\mu_v + K_t(k)(v_t-\hat v)\bigr)\,\partial_{\hat v}\varphi\\
+&\qquad +\tfrac{1}{2} K_t(k)^2\sigma_\epsilon^2\,\partial^2_{\hat v\hat v}\varphi\Big\rangle dt\\
+&\quad +\Big\langle \mu_t, K_t(k)\sigma_c\,\partial_{\hat v}\varphi\Big\rangle dU_t.
+\end{aligned}
+\]
+where $\langle\mu,\varphi\rangle:=\int \varphi\,d\mu$ and
+$K_t(k)=\Sigma_t(k)/(\sigma_c^2+\sigma_\epsilon^2/k)$.
+In the homogeneous case, $\mu_t$ is Gaussian in $\hat v$ conditional on $\mathcal F^0_t$ (with random mean $m_t$).
+\end{remark}

@@ -1,0 +1,131 @@
+% Core content: single source of truth for JEIC full/blind builds.
+% Wrappers set \ifjeicblind before \input'ing this file.
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{booktabs}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage[round,authoryear]{natbib}
+\usepackage[hmargin=2.5cm,vmargin=3cm]{geometry}
+\usepackage{hyperref}
+
+\graphicspath{{../paper_artifacts/figures/}{../}}
+
+% JEIC double-blind: clear author/keywords in PDF metadata; wrap acknowledgments and data-availability in \jeicAck{...} and \jeicDataAvailability{...}
+\ifjeicblind
+  \hypersetup{pdfauthor={},pdfkeywords={}}
+\fi
+
+% Springer-like keywords (simple paragraph)
+\newcommand{\keywords}[1]{\par\noindent\textbf{Keywords:} #1}
+
+% Theorem-like environments
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{example}[theorem]{Example}
+
+% Compact notation
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Prob}{\mathbb{P}}
+\newcommand{\Var}{\text{Var}}
+\newcommand{\Cov}{\text{Cov}}
+\newcommand{\Law}{\mathcal{L}}
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\norm}[1]{\left\|#1\right\|}
+\newcommand{\abs}[1]{\left|#1\right|}
+\newcommand{\inner}[2]{\left\langle#1,#2\right\rangle}
+\newcommand{\argmin}{\operatorname{argmin}}
+\newcommand{\argmax}{\operatorname{argmax}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\trace}{\operatorname{tr}}
+\newcommand{\rank}{\operatorname{rank}}
+\newcommand{\sign}{\operatorname{sign}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\sigeta}{\sigma_\eta}
+
+\newcommand{\MFG}{\text{MFG}}
+\newcommand{\HJB}{\text{HJB}}
+\newcommand{\FPK}{\text{FPK}}
+\newcommand{\CARA}{\text{CARA}}
+\newcommand{\LQG}{\text{LQG}}
+\newcommand{\REE}{\text{REE}}
+
+% Acknowledgments: wrap in \jeicAck{...} so omitted in blind mode.
+\newcommand{\jeicAck}[1]{\ifjeicblind\else #1\fi}
+% Data/code availability in front matter: use \jeicDataAvailability{...}; in blind mode it is replaced by the standard phrase.
+\newcommand{\jeicDataAvailability}[1]{\ifjeicblind Replication package will be provided upon acceptance.\else #1\fi}
+
+\title{Mean Field Game Modeling of Overconfidence in Financial Markets}
+\ifjeicblind
+  \author{Anonymous Author(s)}
+\else
+  \author{Lucas~Sneller\\[0.5em]\normalsize Miami University, Oxford, OH 45056, USA}
+\fi
+\date{}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+This paper develops a mean field model of overconfidence in a market with flow-driven price impact and inventory carryover. A continuum of investors filters an unobserved fundamental from noisy private signals and trades against an endogenous price that mean-reverts toward fundamentals and responds to aggregate order flow; overconfidence enters as misperceived private-signal precision, generating heterogeneous filtered beliefs. Our main equilibrium object is a discrete-time \emph{myopic mean-field equilibrium}: given a conjectured mean trading rate, each agent chooses next-step inventory to maximize one-step \CARA utility under conditionally Gaussian price increments. This yields a linear feedback rule and reduces mean-field consistency to a scalar stock--flow fixed point at each time step. We provide an explicit per-step contraction condition guaranteeing existence, uniqueness, and stability of the resulting discrete-time dynamics and particle approximation. In simulations across bull/bear regimes and a targeted joint grid over anchoring, impact, and noise trading, microstructure parameters govern mispricing levels, whereas overconfidence primarily increases disagreement and trading intensity with limited effect on price-level mispricing in the baseline anchored-impact regime. A finite-horizon continuous-time \CARA/\LQG\ solution is reported as a benchmark, and an identification/moment-matching vignette connects the model's parameters to price and volume moments.
+\end{abstract}
+
+\keywords{Mean field games; Overconfidence; Behavioral finance; Mispricing; Heterogeneous beliefs; Endogenous price formation.}
+
+\noindent\textbf{JEL classification:} G12, G14, D83, C73, C63
+
+\section{Introduction}
+\label{sec:introduction}
+\input{sections/sec1_introduction}
+
+\section{Problem Statement and Model}
+\label{sec:model}
+\input{sections/sec2_model}
+
+\section{Mean-Field Approximation and Limiting Equations}
+\label{sec:meanfield}
+\input{sections/sec3_meanfield}
+\input{sections/mean_field_limit}
+\input{sections/lqg_constructive_solution}
+
+\section{Main Results}
+\label{sec:results}
+\input{sections/sec4_results}
+
+\input{sections/sec5_proofs}
+
+\section{Numerical Examples}
+\label{sec:numerical}
+\input{sections/sec6_numerics}
+
+\section{Conclusion}
+\label{sec:conclusion}
+\input{sections/sec7_conclusion}
+
+\input{sections/jeic_declarations}
+
+\appendix
+\input{sections/appx}
+
+\bibliographystyle{plainnat}
+\bibliography{refs}
+
+\end{document}

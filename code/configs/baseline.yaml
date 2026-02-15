@@ -1,0 +1,82 @@
+horizon: 50
+num_agents: 25
+seed: 7
+alpha_0: 1.0
+gamma: 1.0
+chi: 0.05
+sigma_p2: 1.0
+lambda_price: 0.1
+k_init: 1.2
+k_min: 0.8
+k_max: 2.5
+fundamental_mu: 0.0
+fundamental_sigma: 0.1
+observation_sigma: 0.1
+observation_common_sigma: 0.0
+rho_pos: 0.5
+rho_neg: 0.5
+
+memory:
+  salience_mode: "pnl"
+  h0: 5.0
+  h1: 5.0
+  ema_alpha: 0.2
+  eps: 1.0e-6
+
+confidence:
+  memory_enabled: true
+  alpha_u: 0.1
+  psi: 1.0
+  k_bar: 1.0
+  lambda_herd: 0.0
+
+price_model:
+  enabled: true
+  method: "rls"
+  delta: 1000.0
+  forget_factor: 0.995
+  ridge: 1.0e-8
+  salience_weighting: true
+  w_scale: 1.0
+  reset_on_break: true
+
+planning:
+  enabled: true
+  K: 1
+  use_model: true
+  horizon: 1
+  recent_window: 150
+  gate_after_break: 200
+  use_salience_weights: true
+  update_actor: false
+  warmup_steps: 20
+  synthetic_lr_scale: 0.1
+  only_post_break: true
+
+rl:
+  enabled: true
+  beta: 0.99
+  gamma: 1.0
+  sigma_p2: 1.0
+  eta_v: 0.05
+  eta_pi: 0.01
+  policy_sigma: 0.5
+  action_clip: 10.0
+  seed: 123
+  reward_mode: "expected_utility"
+  use_belief_var: true
+  reset_critic_on_break: true
+
+market:
+  price_rule: "anchored_impact"
+  kappa: 0.05
+  impact: 0.01
+  noise_sigma: 0.0
+
+experiment:
+  regime_break_enabled: false
+  t_break: 300
+  post_kappa: null
+  post_impact: null
+  post_sigma_v: null
+  post_obs_noise: null

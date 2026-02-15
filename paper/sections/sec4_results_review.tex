@@ -1,0 +1,427 @@
+% Section 4: Main Results
+
+\subsection{Static Benchmark: Price Sensitivity and Overconfidence}
+
+The closed-form static price \eqref{eq:static_price} yields explicit comparative statics with respect to overconfidence.
+
+\begin{proposition}[Static price response increases with overconfidence]
+\label{prop:static_comparative}
+Let $\tau_{v,0} := 1/\sigma_{v,0}^2$ and $\tau'_{\epsilon,0} := k/\sigma_{\epsilon,0}^2$. In the static benchmark, the coefficient on $v$ in \eqref{eq:static_price} is
+\begin{equation}
+a(k) = \frac{\lambda \tau'_{\epsilon,0}}{\gamma + \lambda(\tau_{v,0}+\tau'_{\epsilon,0})},
+\end{equation}
+which is increasing in $k$ and satisfies $0<a(k)<1$.
+\end{proposition}
+
+\subsection{Myopic Trading Rule and Mean-Field Consistency}
+
+We next derive a checkable \emph{myopic} inventory rule for the discrete-time timing in Subsubsection~\ref{subsubsec:timing_stock_flow}. Fix a decision interval $\Delta t$ and treat the mean trading rate $\bar u_t$ and the public price $p_t$ as given. For tractability, belief updating (Appendix~A) conditions only on the private signal $\xi_i$; incorporating endogenous prices as an additional observation channel would require joint filtering and a richer fixed-point formulation. Conditional on the investor's information $\mathcal F^i_t$, the one-step price increment $\Delta p_{t+\Delta t}$ is Gaussian with conditional mean $(\kappa(\hat v_{i,t}-p_t)+\lambda \bar u_t)\Delta t$ and conditional variance $\sigma^2_{p,i,t}\Delta t$.
+
+\begin{proposition}[Myopic \CARA inventory choice with holding cost and flow impact]
+\label{prop:myopic_cara}
+Fix a decision interval $\Delta t$. Suppose conditional on $\mathcal F^i_t$ the price increment is Gaussian with
+$\E_i[\Delta p_{t+\Delta t}]=(\kappa(\hat v_{i,t}-p_t)+\lambda\bar u_t)\Delta t$ and
+$\Var_i(\Delta p_{t+\Delta t})=\sigma^2_{p,i,t}\Delta t$.
+With one-step wealth $\Delta W_{i,t}=x_{i,t}\Delta p_{t+\Delta t}-(\chi/2)x_{i,t}^2\Delta t$ and \CARA utility, the unique maximizer is
+\begin{equation}
+x^\star_{i,t} = \frac{\kappa(\hat v_{i,t}-p_t)+\lambda\bar u_t}{\chi+\gamma\,\sigma^2_{p,i,t}}.
+\label{eq:myopic_policy}
+\end{equation}
+\end{proposition}
+
+Define the corresponding \emph{mispricing gain} (shares per unit price) as the coefficient on $(\hat v_{i,t}-p_t)$ in \eqref{eq:myopic_policy}. Under the Euler increment \eqref{eq:anchored_impact} over $\Delta t$ and conditioning on $\mathcal F^i_t$, $\sigma^2_{p,i,t}=\phi^2+\kappa^2\Sigma_{i,t}\Delta t$, so
+\begin{equation}
+\Theta_t(\Sigma_{i,t})
+:=
+\frac{\kappa}{\chi+\gamma\,\sigma^2_{p,i,t}}
+=
+\frac{\kappa}{\chi+\gamma\bigl(\phi^2+\kappa^2\Sigma_{i,t}\Delta t\bigr)}.
+\label{eq:theta_def}
+\end{equation}
+Moreover,
+\[
+\partial_\Sigma \Theta_t(\Sigma)
+=
+-\frac{\gamma \kappa^3 \Delta t}{\bigl(\chi+\gamma(\phi^2+\kappa^2\Sigma\Delta t)\bigr)^2}\le 0,
+\]
+so $\Theta_t$ is weakly decreasing in $\Sigma$.
+
+\paragraph{Position-impact benchmark (reduced form; not used in baseline simulations).}
+If one collapses stock and flow (so $\bar u_t\equiv \bar x_t$) and sets $\chi=0$ and $\sigma^2_{p,i,t}\equiv\phi^2$, then averaging \eqref{eq:myopic_policy} yields the familiar homogeneous closure (assuming $\gamma\phi^2>\lambda$):
+\begin{equation}
+\bar x_t = \frac{\kappa}{\gamma\phi^2-\lambda}\,(m_t-p_t),
+\label{eq:mean_field_closure}
+\end{equation}
+where $m_t := \int_0^1 \hat v_{i,t}\,di$ is the mean belief. This reduced form is retained only as a transparent diagnostic benchmark; the baseline simulations solve the discrete-time stock--flow fixed point with inventory carryover and uniqueness condition $0\le B_t<\Delta t$ (Proposition~\ref{prop:step_fixed_point} and Theorem~\ref{thm:contraction}).
+
+\subsection{Exact continuous-time CARA/LQG control with filtering and mean-field coupling}
+\label{subsec:ct_cara_lqg}
+
+This subsection replaces the infinitesimal-horizon (myopic) CARA rule with the
+finite-horizon continuous-time exponential-utility optimum under partial information.
+We keep the same fundamental/signal/price dynamics \eqref{eq:v_dyn_ct}--\eqref{eq:p_dyn_ct}
+and the same Kalman--Bucy filtering structure for subjective beliefs.
+
+\paragraph{Dynamics and information.}
+Let the fundamental and price evolve as
+\begin{align}
+dv_t &= \mu_v\,dt + \sigma_v\,dW_t, \label{eq:v_dyn_ct}\\
+d\xi_{i,t} &= v_t\,dt + \sigma_c\,dU_t + \sigma_\epsilon\,dB_{i,t}, \label{eq:xi_dyn_ct}\\
+dp_t &= \kappa\,(v_t - p_t)\,dt + \lambda\,\bar u_t\,dt + \phi\,dZ_t, \label{eq:p_dyn_ct}
+\end{align}
+where $\bar u_t := \int_0^1 u_{j,t}\,dj$ is the mean-field trading rate (taken as exogenous by an infinitesimal agent).
+Agent $i$ observes $(p_s,\xi_{i,s})_{s\le t}$ and forms a subjective filtered estimate $\hat v_{i,t}$.
+
+\paragraph{Subjective Kalman filter (with overconfidence).}
+As in Appendix~A, agent $i$ runs a (possibly misspecified) Kalman--Bucy filter
+\begin{equation}
+\begin{aligned}
+d\hat v_{i,t}
+&= \mu_v\,dt + K_t^{(i)}\bigl(d\xi_{i,t}-\hat v_{i,t}\,dt\bigr),\\
+K_t^{(i)} &:= \frac{\Sigma_t^{(i)}}{R'_i},\qquad
+R'_i := \sigma_c^2+\frac{\sigma_\epsilon^2}{k_i},
+\end{aligned}
+\label{eq:kb_filter_ct}
+\end{equation}
+with Riccati equation
+\begin{equation}
+\dot\Sigma_t^{(i)} \;=\; \sigma_v^2 - \frac{(\Sigma_t^{(i)})^2}{R'_i},
+\qquad \Sigma_0^{(i)}\ge 0.
+\label{eq:riccati_ct}
+\end{equation}
+(When convenient, one may use the constant-gain approximation $K_t^{(i)}\approx K_i^\star
+= \sigma_v/\sqrt{R'_i}$.)
+
+\paragraph{Innovation form and reduced state.}
+Define the (belief-based) mispricing state
+\begin{equation}
+y_{i,t} := \hat v_{i,t}-p_t.
+\label{eq:y_def}
+\end{equation}
+Under the agent's filtration, write the observed price in innovations form
+\begin{equation}
+dp_t \;=\; \bigl[\kappa\,y_{i,t}+\lambda\,\bar u_t\bigr]dt \;+\; \phi\,dI^p_{i,t},
+\label{eq:p_innov}
+\end{equation}
+where $I^p_{i}$ is a Brownian motion (price innovation).
+Likewise, the (normalized) signal innovation process is defined by
+\[
+dI^\xi_{i,t} \;:=\; \frac{d\xi_{i,t}-\hat v_{i,t}\,dt}{\sqrt{\sigma_c^2+\sigma_\epsilon^2}}.
+\]
+Under the agent filtration $\mathcal F^i_t$, $I^\xi_i$ is a Brownian motion and is independent of the price innovation $I^p_i$.
+
+Consequently, the controlled wealth and the state satisfy
+\begin{align}
+dW_{i,t} &= x_{i,t}\,dp_t \;=\; x_{i,t}\bigl[\kappa\,y_{i,t}+\lambda\,\bar u_t\bigr]dt
+          + x_{i,t}\phi\,dI^p_{i,t}, \label{eq:W_dyn}\\
+dy_{i,t} &= \bigl[\mu_v-\kappa\,y_{i,t}-\lambda\,\bar u_t\bigr]dt
+          + \beta^{(i)}_t\,dI^\xi_{i,t} \;-\; \phi\,dI^p_{i,t},
+\label{eq:y_dyn}
+\end{align}
+where $I^\xi_i$ is an (independent) Brownian motion and the (subjective) unhedgeable
+belief-noise loading is
+\begin{equation}
+\beta^{(i)}_t \;:=\; K_t^{(i)}\,\sqrt{\sigma_c^2+\sigma_\epsilon^2}.
+\label{eq:beta_def}
+\end{equation}
+Note that $K_t^{(i)}$ depends on the perceived measurement-noise variance $R'_i(k_i)$, whereas the innovation volatility factor $\sqrt{\sigma_c^2+\sigma_\epsilon^2}$ reflects the true signal-noise variance in $d\xi_{i,t}$.
+
+\medskip
+Equivalently, since $d\xi_{i,t}-\hat v_{i,t}\,dt=\sqrt{\sigma_c^2+\sigma_\epsilon^2}\,dI^\xi_{i,t}$, the Kalman--Bucy update \eqref{eq:kb_filter_ct} can be written in innovation form as
+\[
+d\hat v_{i,t}=\mu_v\,dt+\beta^{(i)}_t\,dI^\xi_{i,t}.
+\]
+This is the diffusion term that enters the reduced state dynamics \eqref{eq:y_dyn}.
+
+(Under constant gain, $\beta^{(i)}_t\approx \beta_i^\star = K_i^\star\sqrt{\sigma_c^2+\sigma_\epsilon^2}$
+is constant.)
+
+\paragraph{Diffusions entering the HJB.}
+In the innovation representation \eqref{eq:W_dyn}--\eqref{eq:y_dyn}, the controlled state is $(W_{i,t},y_{i,t})$ and is driven by two independent Brownian motions: the \emph{price innovation} $I^p_{i}$ with volatility $\phi$ and the \emph{filter innovation} $I^\xi_{i}$ with volatility $\beta^{(i)}_t$.
+Consequently, the HJB/It\^o generator contains the variance terms $\frac12 x_{i,t}^2\phi^2 V_{ww}$ and $\frac12\bigl((\beta^{(i)}_t)^2+\phi^2\bigr)V_{yy}$.
+Moreover, because the same $dI^p_{i,t}$ appears in both $dW_{i,t}$ and $dy_{i,t}$, we have the cross-variation
+$d\langle W_i,y_i\rangle_t = -x_{i,t}\phi^2\,dt$,
+which produces the mixed derivative term $-x_{i,t}\phi^2 V_{wy}$ in the HJB and is exactly the source of the intertemporal hedging correction in \eqref{eq:opt_control_lqg}.
+
+\paragraph{Control objective.}
+Agent $i$ maximizes exponential utility of terminal wealth:
+\begin{equation}
+\sup_{x_i\in\mathcal A}\;
+\mathbb E\Bigl[-\exp\bigl(-\gamma_i W_{i,T}\bigr)\,\big|\,\mathcal F^i_t\Bigr],
+\label{eq:exp_obj}
+\end{equation}
+over admissible progressively measurable controls $\mathcal A$ with
+$\mathbb E\!\int_0^T x_{i,t}^2\,dt < \infty$.
+
+\paragraph{Exact CARA/LQG solution (finite horizon).}
+\begin{proposition}[Exponential-quadratic value and optimal feedback]
+\label{prop:ct_cara_lqg}
+Fix a mean-field trading-rate process $(\bar u_t)_{t\in[0,T]}$.
+The value function admits the exponential-quadratic form
+\begin{equation}
+V_i(t,w,y) \;=\; -\exp\!\left(-\gamma_i w - \frac12 A^{(i)}_t y^2 - B^{(i)}_t y - C^{(i)}_t\right),
+\label{eq:V_form}
+\end{equation}
+where $(A^{(i)}_t,B^{(i)}_t,C^{(i)}_t)$ solve the backward ODE system with terminal conditions
+$A^{(i)}_T=B^{(i)}_T=C^{(i)}_T=0$:
+\begin{align}
+-\dot A^{(i)}_t
+&= \frac{\kappa^2}{\phi^2} - \bigl(\beta^{(i)}_t\bigr)^2\bigl(A^{(i)}_t\bigr)^2,
+\label{eq:A_ode}\\
+-\dot B^{(i)}_t
+ &= \frac{\kappa\lambda}{\phi^2}\,\bar u_t \;+\; \mu_v\,A^{(i)}_t
+    \;-\; \bigl(\beta^{(i)}_t\bigr)^2 A^{(i)}_t B^{(i)}_t,
+\label{eq:B_ode}\\
+-\dot C^{(i)}_t
+&= \frac12\Bigl(\bigl((\beta^{(i)}_t)^2+\phi^2\bigr)A^{(i)}_t
+      - (\beta^{(i)}_t)^2\bigl(B^{(i)}_t\bigr)^2\Bigr)\\
+&\quad + \mu_v B^{(i)}_t + \frac{\lambda^2}{2\phi^2}\bar u_t^{\,2}.
+\label{eq:C_ode}
+\end{align}
+The optimal control is the affine feedback
+\begin{equation}
+x_{i,t}^\star
+\;=\; \frac{\kappa\,y_{i,t}+\lambda\,\bar u_t}{\gamma_i\phi^2}
+      \;+\; \frac{A^{(i)}_t y_{i,t}+B^{(i)}_t}{\gamma_i}.
+\label{eq:opt_control_lqg}
+\end{equation}
+The first term is the myopic (instantaneous) demand.
+The second term is an intertemporal hedging correction induced by the correlation between the state $y_{i,t}$
+and traded return noise in \eqref{eq:y_dyn}.
+\end{proposition}
+
+\paragraph{Constant-gain closed form (tight approximation).}
+Under the constant-gain approximation $K_t^{(i)}\approx K_i^\star$ so that
+$\beta^{(i)}_t\approx \beta_i^\star$ is constant, \eqref{eq:A_ode} has the explicit solution
+\begin{equation}
+\begin{aligned}
+A^{(i)}_t
+&\approx
+\frac{\kappa}{\phi\,\beta_i^\star}\,
+\tanh\!\left(\frac{\kappa\,\beta_i^\star}{\phi}(T-t)\right),\\
+\beta_i^\star &:= K_i^\star\sqrt{\sigma_c^2+\sigma_\epsilon^2},\\
+K_i^\star &:= \frac{\sigma_v}{\sqrt{\sigma_c^2+\sigma_\epsilon^2/k_i}}.
+\end{aligned}
+\label{eq:A_closed_form}
+\end{equation}
+The remaining $(B^{(i)}_t,C^{(i)}_t)$ follow from linear ODEs once $\bar u_t$ is specified.
+
+\paragraph{Mean-field consistency.}
+With flow-based impact, the endogenous mean-field object is the trading rate $\bar u_t$ rather than the inventory $\bar x_t$.
+Closing the loop therefore requires an explicit link between inventory adjustments and trading rates; Subsection~\ref{subsubsec:timing_stock_flow} fixes the discrete-time timing used in the baseline particle implementation, and Subsection~\ref{subsec:ct_flow_control_extension} sketches a continuous-time flow-control extension.
+
+\subsection{Continuous-time CARA/LQG with inventory dynamics and quadratic trading costs (flow-control extension)}
+\label{subsec:ct_flow_control_extension}
+This subsection provides a continuous-time benchmark consistent with the stock--flow separation (inventory $x$ versus trading rate $u$). It is included only as an extension and is not used in the baseline discrete-time simulations.
+
+Let $u_{i,t}$ denote the agent's trading rate and let inventory evolve as
+\begin{equation}
+dx_{i,t}=u_{i,t}\,dt.
+\end{equation}
+Under the innovation representation (Proposition~\ref{prop:ct_cara_lqg}), price evolves with flow-based impact,
+\begin{equation}
+dp_t = (\kappa y_{i,t}+\lambda \bar u_t)\,dt+\phi\,dI^p_{i,t},
+\end{equation}
+and we augment wealth with quadratic trading and holding costs,
+\begin{equation}
+dW_{i,t}=x_{i,t}\,dp_t-\eta\,u_{i,t}^2\,dt-\frac{\chi}{2}x_{i,t}^2\,dt,
+\qquad \eta>0,\;\chi>0.
+\end{equation}
+Consider the exponential-utility value function with state $(w,x,y)$,
+\[
+V(t,w,x,y):=\sup_{(u_s)_{s\in[t,T]}} \E\bigl[-\exp(-\gamma W_{i,T})\mid (W_{i,t},x_{i,t},y_{i,t})=(w,x,y)\bigr],
+\]
+taking the mean-field path $\bar u_t$ as given. With the CARA ansatz
+\[
+V(t,w,x,y)=-\exp\bigl(-\gamma(w+f(t,x,y))\bigr),
+\]
+the HJB takes the standard risk-sensitive LQG form, and the control enters only through
+\[
+\sup_{u}\,\bigl\{u\,\partial_x f(t,x,y)-\eta\,u^2\bigr\},
+\]
+so the optimal trading rate is
+\begin{equation}
+u_{i,t}^\star=\frac{\partial_x f(t,x_{i,t},y_{i,t})}{2\eta}.
+\end{equation}
+Under a quadratic specification for $f(t,x,y)$, $\partial_x f$ is affine in $(x,y)$ and hence $u_{i,t}^\star$ is linear in $(x,y)$. Substituting the quadratic ansatz into the HJB yields a coupled system of Riccati ODEs for the quadratic coefficients and linear ODEs for the affine terms, with forcing that depends on the (given) mean-field flow $\bar u_t$; this is the usual LQG structure.
+
+\subsection{Level Amplification vs.\ Overconfidence Effects}
+\label{subsec:amplification}
+
+This subsection distinguishes two notions: (i) \emph{level amplification}---large mispricing/volatility levels driven by weak anchoring and/or high noise trading; and (ii) \emph{overconfidence (treatment) effects}---incremental differences when increasing $k$ from $1$ to $3$. The following proposition gives an analytical mechanism for why $k$ predominantly affects disagreement rather than mispricing.
+
+\begin{proposition}[Mechanism: mean-belief closure and why $k$ shifts dispersion more than price]
+\label{prop:mechanism_k}
+Within the myopic mean-field equilibrium (per-step stock--flow closure in Proposition~\ref{prop:step_fixed_point}):
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{Closure depends only on the mean belief.}
+The per-step fixed point for $(\bar x_t,\bar u_t)$ depends on the belief distribution only through cross-sectional averages of $\hat v_{i,t}-p_t$ (equivalently, the mean belief $m_t:=\int_0^1 \hat v_{i,t}\,di$) and the predetermined pre-trade mean inventory $\bar x_{t^-}$. In particular, cross-sectional variance (disagreement) does not enter the mean-field fixed point except through the risk denominators $D_{i,t}$ (and in the homogeneous benchmark $D_{i,t}$ is common across agents).
+(In the particle implementation, the one-step myopic rule uses the effective variance
+$\mathrm{Var}^{\mathrm{eff}}_{i,t}=\phi^2+\kappa^2\Sigma_{i,t}\Delta t$ (Proposition~\ref{prop:step_fixed_point}); in the homogeneous benchmark $\Sigma_{i,t}$ is common across agents, so this term only rescales $\bar x_t$ and does not introduce dependence on disagreement.)
+\item \textbf{Decomposition of mispricing.}
+For additional closed-form intuition, under the reduced-form position-impact benchmark closure \eqref{eq:mean_field_closure} (which collapses stock and flow), let $y_t := p_t - v_t$ (mispricing) and $e_t := m_t - v_t$ (mean-belief tracking error). Under the constant-gain approximation, the pair $(y_t,e_t)$ satisfies the linear system \eqref{eq:2d_ou}: mispricing dynamics are driven by (a) \emph{microstructure regime} $(\kappa,\lambda,\phi)$ through the coefficient $c := \lambda\kappa/(\gamma\phi^2-\lambda)$ and the mean-reversion rate $\kappa+c$; and (b) the \emph{mean-belief term} $e_t$, which is the only channel through which the belief distribution affects price. Thus $\E[|p-v|]$ and stationary mispricing variance are determined by $(\kappa,\lambda,\phi)$ and the stationary law of $e_t$.
+\item \textbf{Why $k$ predominantly affects disagreement.}
+Under the information structure of Appendix~A, each agent's belief has a common component (loading $K^*(k)\sigma_c$ on $dU_t$) and an idiosyncratic component (loading $K^*(k)\sigma_\epsilon$ on $dB_{i,t}$). The cross-sectional mean $m_t$ aggregates beliefs, so the idiosyncratic components average out and $m_t$ is driven only by the common noise and the fundamental. By Proposition~\ref{prop:stationary_disagreement}, disagreement $D_\infty(k)=\Var(\hat v_{i,t}-m_t\mid \mathcal F^0)$ is \emph{strictly increasing} in $k$. By Proposition~\ref{prop:tracking_error}, the mean-belief error $e_t=m_t-v_t$ has stationary variance $\Var(e_\infty)$ that depends on $k$ only through $K^*(k)$ and is \emph{strictly decreasing} in $k$. Hence incremental increases in $k$ raise cross-sectional variance (disagreement) and trading intensity by construction, while the mean belief---and therefore equilibrium demand and mispricing---respond only weakly because they depend on $e_t$, whose variance is bounded and not uniformly amplified in $k$.
+\end{enumerate}
+\end{proposition}
+
+\paragraph{Structural extensions (potential mechanisms).}
+The model can be extended with structural mechanisms that could amplify mispricing persistence or volatility:
+(i) \emph{State-dependent anchoring}: $\kappa(t) = \kappa_{\text{base}} \exp(-\alpha_\kappa |p_t - v_t|)$ weakens arbitrage pressure under extreme mispricing (limits to arbitrage);
+(ii) \emph{Endogenous fundamental feedback}: $dv_t = \mu_v\,dt + \sigma_v\,dW_t + \beta_{\text{feedback}} (p_t - v_t)\,dt$ creates reflexive price--fundamental loops;
+(iii) \emph{Overconfidence-dependent impact}: $\lambda_{\text{eff}} = \lambda_{\text{base}} (1 + \beta_\lambda (\bar k_t - 1))$ makes impact increase with aggregate overconfidence.
+
+\begin{proposition}[Per-step fixed point in the particle implementation]
+\label{prop:step_fixed_point}
+In the discrete-time particle implementation, we use an effective variance
+\begin{equation}
+\mathrm{Var}^{\mathrm{eff}}_{i,t} := \phi^2 + \kappa^2\Sigma_{i,t}\,\Delta t,
+\end{equation}
+i.e.\ we instantiate the variance rate in Proposition~\ref{prop:myopic_cara} as $\sigma^2_{p,i,t}=\mathrm{Var}^{\mathrm{eff}}_{i,t}$,
+and define the effective risk/holding-cost term
+\begin{equation}
+D_{i,t}:=\chi+\gamma\,\mathrm{Var}^{\mathrm{eff}}_{i,t}.
+\end{equation}
+The myopic rule takes the linear form
+\begin{equation}
+x_{i,t} = \frac{\alpha_0}{D_{i,t}}\Bigl(\kappa(\hat v_{i,t}-p_t) + \lambda \bar u_t\Bigr).
+\label{eq:impl_policy}
+\end{equation}
+This form follows by applying Proposition~\ref{prop:myopic_cara} to the flow-based Euler increment
+$\Delta p_{t+1}:=p_{t+1}-p_t=\kappa(v_t-p_t)\Delta t+\lambda \bar u_t\Delta t+\phi\sqrt{\Delta t}\,\varepsilon^\eta_{t+1}$:
+conditional on $\mathcal F^i_t$, the drift depends on $\hat v_{i,t}$ and the variance satisfies
+$\Var_{i,t}(\Delta p_{t+1})=\phi^2\Delta t+\kappa^2\Sigma_{i,t}(\Delta t)^2=\mathrm{Var}^{\mathrm{eff}}_{i,t}\,\Delta t$.
+Hence the optimal one-step inventory depends on the effective variance rate $\mathrm{Var}^{\mathrm{eff}}_{i,t}=\phi^2+\kappa^2\Sigma_{i,t}\Delta t$.
+The scalar $\alpha_0>0$ is an optional position-size (risk-budget) scaling (set to $\alpha_0=1$ in our baseline) and can be absorbed into a rescaling of $\gamma$.
+Define
+\[
+A_t := \frac1N\sum_{i=1}^N \frac{\alpha_0\kappa(\hat v_{i,t}-p_t)}{D_{i,t}},
+\qquad
+B_t := \frac1N\sum_{i=1}^N \frac{\alpha_0\lambda}{D_{i,t}}.
+\]
+Let $\bar x_{t^-}:=\frac1N\sum_{i=1}^N x_{i,t^-}$ denote the pre-trade mean inventory and note that the mean trading rate satisfies
+$\bar u_t=(\bar x_t-\bar x_{t^-})/\Delta t$.
+If $0\le B_t<\Delta t$, the scalar fixed point exists and is unique and is given by
+\begin{equation}
+\bar x_t = \frac{A_t - (B_t/\Delta t)\bar x_{t^-}}{1 - B_t/\Delta t},
+\qquad
+\bar u_t=\frac{\bar x_t-\bar x_{t^-}}{\Delta t}.
+\end{equation}
+\end{proposition}
+
+\begin{theorem}[Contraction and uniqueness of the per-step mean-field closure]
+\label{thm:contraction}
+Fix time $t$ and treat the belief states $(\hat v_{i,t},\Sigma_{i,t})$, the public price $p_t$, and the pre-trade mean inventory $\bar x_{t^-}$ as given. Define the affine mean-field map
+\begin{equation}
+\Phi_t(\bar x) := A_t + \frac{B_t}{\Delta t}\bar x - \frac{B_t}{\Delta t}\bar x_{t^-},
+\end{equation}
+where $A_t,B_t$ are as in Proposition~\ref{prop:step_fixed_point}. If $0\le B_t<\Delta t$, then $\Phi_t$ is a contraction on $\mathbb R$ with constant $B_t/\Delta t$ and has a unique fixed point, given in closed form in Proposition~\ref{prop:step_fixed_point}.
+Moreover, since $\mathrm{Var}^{\mathrm{eff}}_{i,t}\ge \phi^2$ and $D_{i,t}\ge \chi+\gamma\phi^2$, a simple sufficient condition ensuring $B_t<\Delta t$ uniformly is
+\begin{equation}
+\frac{\alpha_0\lambda}{\Delta t\,(\chi+\gamma\phi^2)}<1.
+\label{eq:global_contraction}
+\end{equation}
+In the homogeneous case $D_{i,t}\equiv D_t$, we have $B_t=\alpha_0\lambda/D_t$, so $0\le B_t<\Delta t$ is equivalent to
+$D_t>\alpha_0\lambda/\Delta t$, i.e.\ $\chi+\gamma\,\mathrm{Var}^{\mathrm{eff}}_t>\alpha_0\lambda/\Delta t$.
+\end{theorem}
+
+\begin{proposition}[Closed-loop stability in a homogeneous benchmark]
+\label{prop:stability}
+Assume the homogeneous closure \eqref{eq:mean_field_closure} holds and, for this benchmark calculation, that the mean belief tracks the fundamental ($m_t=v_t$). Then the mispricing $y_t:=p_t-v_t$ satisfies the linear SDE
+\begin{equation}
+\begin{aligned}
+dy_t &= -\kappa_{\mathrm{eff}}\,y_t\,dt - \mu_v\,dt + \phi\,dZ_t - \sigma_v\,dW_t,\\
+\kappa_{\mathrm{eff}} &:= \kappa\,\frac{\gamma\phi^2}{\gamma\phi^2-\lambda}.
+\end{aligned}
+\end{equation}
+In particular, if $\gamma\phi^2>\lambda$ then $\kappa_{\mathrm{eff}}>0$ and $y_t$ is mean-reverting (Ornstein--Uhlenbeck). If additionally $\mu_v=0$, the stationary variance is $\Var(y_\infty)=(\phi^2+\sigma_v^2)/(2\kappa_{\mathrm{eff}})$.
+\end{proposition}
+
+\subsection{Uniqueness and Stability Conditions (Multiplicity and Blow-Ups)}
+
+The following conditions rule out multiple equilibria and blow-ups. \textbf{Continuous-time LQG map} $\Phi$ (position-impact benchmark; Section~\ref{sec:lqg_constructive}): if $\gamma\phi^2>\lambda$ (positive denominator) and $q<1$, then $\Phi$ is a contraction on $(\mathcal X,\|\cdot\|_2)$, so the fixed point is unique and Picard iteration does not blow up (see Proposition~\ref{prop:lqg_constructive}). \textbf{Discrete-time per-step (baseline stock--flow):} if $0\le B_t<\Delta t$, the scalar stock--flow fixed point for $(\bar x_t,\bar u_t)$ is unique (Proposition~\ref{prop:step_fixed_point}); a sufficient uniform condition is \eqref{eq:global_contraction} (see Theorem~\ref{thm:contraction}). \textbf{Closed-loop paths (mispricing OU benchmark):} under the position-impact benchmark closure \eqref{eq:mean_field_closure}, if $\gamma\phi^2>\lambda$ then $\kappa_{\mathrm{eff}}>0$ and mispricing is mean-reverting (Proposition~\ref{prop:stability}). \textbf{Black-box MFG limit (benchmark):} under (H1)--(H5), the equilibrium flow is unique and $\bar\mu^N_t$ converges to $\mu_t$ at rate $O(1/N)$ (see Proposition~\ref{prop:mfg_limit_stability} in the mean-field limit subsection).
+
+\subsection{Option B: Stationary Moments With Explicit \texorpdfstring{$k$}{k}-Dependence}
+
+This subsection is a diagnostic benchmark built on the reduced-form position-impact closure \eqref{eq:mean_field_closure}; the baseline simulations use the discrete-time stock--flow equilibrium with uniqueness condition $0\le B_t<\Delta t$ (Proposition~\ref{prop:step_fixed_point}, Theorem~\ref{thm:contraction}).
+
+Proposition~\ref{prop:stability} provides a transparent OU benchmark for mispricing, but it removes the overconfidence channel by imposing $m_t=v_t$. We now record complementary stationary-moment calculations in which $k$ enters explicitly through the steady-state filtering gain (Appendix~A).
+Lemma~\ref{lem:riccati_convergence} shows that the perceived Riccati equation converges exponentially to the steady state, motivating the constant-gain approximation used below (interpretable as an asymptotic stationary regime after burn-in).
+
+\begin{proposition}[Stationary disagreement and monotonicity in $k$ (constant-gain approximation)]
+\label{prop:stationary_disagreement}
+Assume a homogeneous overconfidence type $k$ and approximate the Kalman--Bucy gain by its steady-state value
+$K^*(k)=\sigma_v/\sqrt{R'(k)}$, where $R'(k)=\sigma_c^2+\sigma_\epsilon^2/k$ (Appendix~A). Let
+$m_t:=\int_0^1 \hat v_{i,t}\,di$ and define the cross-sectional deviation $\delta_{i,t}:=\hat v_{i,t}-m_t$.
+Conditioning on the common filtration $\mathcal F_t^0$, the deviations satisfy the OU dynamics
+\begin{equation}
+d\delta_{i,t} = -K^*(k)\,\delta_{i,t}\,dt + K^*(k)\sigma_\epsilon\,dB_{i,t}.
+\label{eq:delta_ou}
+\end{equation}
+Consequently, the conditional disagreement
+$D_t:=\Var(\hat v_{i,t}\mid \mathcal F_t^0)=\Var(\delta_{i,t}\mid \mathcal F_t^0)$
+admits the stationary value
+\begin{equation}
+D_\infty(k)=\frac{K^*(k)\sigma_\epsilon^2}{2}
+=\frac{\sigma_v\sigma_\epsilon^2}{2\sqrt{\sigma_c^2+\sigma_\epsilon^2/k}},
+\label{eq:D_infty}
+\end{equation}
+which is strictly increasing in $k$.
+\end{proposition}
+
+\begin{proposition}[Stationary mean-belief tracking error (constant-gain approximation)]
+\label{prop:tracking_error}
+Under the same constant-gain approximation, define the mean-belief tracking error $e_t:=m_t-v_t$. Then
+\begin{equation}
+de_t = -K^*(k)\,e_t\,dt + K^*(k)\sigma_c\,dU_t - \sigma_v\,dW_t,
+\label{eq:e_ou}
+\end{equation}
+and the stationary variance is
+\begin{equation}
+\Var(e_\infty)=\frac{(K^*(k))^2\sigma_c^2+\sigma_v^2}{2K^*(k)}
+=\frac{K^*(k)\sigma_c^2}{2}+\frac{\sigma_v^2}{2K^*(k)}.
+\label{eq:Var_e_infty}
+\end{equation}
+In particular, $k$ enters the stationary tracking quality through $K^*(k)$ and $\Var(e_\infty)$ is strictly decreasing in $k$ (and converges to $\sigma_v\sigma_c$ as $k\to\infty$ when $\sigma_c>0$).
+\end{proposition}
+
+\begin{proposition}[Stationary mispricing with belief feedback (2D OU / Lyapunov form)]
+\label{prop:2d_ou}
+Assume $\mu_v=0$ and use the homogeneous closure \eqref{eq:mean_field_closure}. Under the constant-gain approximation above, the pair
+$(y_t,e_t)$ with $y_t:=p_t-v_t$ satisfies the linear system
+\begin{align}
+dy_t &= -(\kappa+c)\,y_t\,dt + c\,e_t\,dt + \phi\,dZ_t - \sigma_v\,dW_t,\nonumber\\
+de_t &= -K^*(k)\,e_t\,dt + K^*(k)\sigma_c\,dU_t - \sigma_v\,dW_t,
+\label{eq:2d_ou}
+\end{align}
+where $c:=\lambda\kappa/(\gamma\phi^2-\lambda)$.
+If $\gamma\phi^2>\lambda$ and $K^*(k)>0$, then the drift matrix
+\[
+A(k):=\begin{bmatrix}-(\kappa+c) & c\\ 0 & -K^*(k)\end{bmatrix}
+\]
+is Hurwitz and the stationary covariance $P(k)=\E[X_\infty X_\infty^\top]$ for $X_t=(y_t,e_t)$ is the unique solution of the Lyapunov equation
+\begin{equation}
+A(k)P(k)+P(k)A(k)^\top + Q(k) = 0,
+\label{eq:lyapunov}
+\end{equation}
+where $Q(k)$ is the diffusion covariance implied by \eqref{eq:2d_ou}. Thus $\Var(y_\infty)$ depends on $k$ explicitly through $K^*(k)$.
+\end{proposition}
+
+\begin{corollary}[Closed-form stationary variances for Proposition~\ref{prop:2d_ou}]
+\label{cor:2d_ou_closed_form}
+In the setting of Proposition~\ref{prop:2d_ou}, write $K:=K^*(k)$ and define the noise covariances
+$q_{11}:=\phi^2+\sigma_v^2$, $q_{12}:=\sigma_v^2$, and $q_{22}:=K^2\sigma_c^2+\sigma_v^2$.
+Then the Lyapunov equation \eqref{eq:lyapunov} has the explicit solution $P=\begin{pmatrix}p_{11}&p_{12}\\p_{12}&p_{22}\end{pmatrix}$ with
+\begin{equation}
+\begin{aligned}
+p_{22}&=\frac{q_{22}}{2K}=\frac{K\sigma_c^2}{2}+\frac{\sigma_v^2}{2K},\\
+p_{12}&=\frac{c\,p_{22}+q_{12}}{\kappa+c+K},\\
+p_{11}&=\frac{c\,p_{12}+q_{11}/2}{\kappa+c}.
+\end{aligned}
+\end{equation}
+In particular, $\Var(y_\infty)=p_{11}$ depends on $k$ through $K^*(k)$.
+\end{corollary}
+
+\subsection{Connection to Numerical Results}
+
+Section~VI simulates a large-$N$ particle system implementing \eqref{eq:anchored_impact}, Kalman belief updates (Appendix~A), and the feedback policy \eqref{eq:myopic_policy} (implemented in discrete time with an effective variance that includes belief uncertainty). Overconfidence enters only through belief updating (misperceived signal precision), and we report price/mispricing/volatility statistics across bull/bear drifts $\mu_v$ and overconfidence levels $k$.

@@ -1,0 +1,189 @@
+% Section 2: Problem Statement and Model
+
+\subsection{Setup and Notation}
+
+We consider a financial market with a continuum of investors indexed by $i \in [0,1]$ over a horizon $[0,T]$. Let $(\Omega,\mathcal{F},\{\mathcal{F}_t\}_{t\ge 0},\Prob)$ support independent Brownian motions $W_t$ (fundamental shock), $Z_t$ (aggregate price/noise-trading shock), $U_t$ (common signal component), and $\{B_{i,t}\}_{i\in[0,1]}$ (idiosyncratic signal noise). We write $\E[\cdot]$ for expectation and $\tau = 1/\sigma^2$ for precision.
+
+Model parameters: $\gamma>0$ (absolute risk aversion), $\kappa>0$ (fundamental anchoring strength), $\lambda>0$ (impact strength), $k\ge 1$ (overconfidence), and volatilities $\sigma_v,\sigma_c,\sigma_\epsilon,\sigma_\eta,\phi>0$ (fundamental shock, common signal component, idiosyncratic signal noise, order-flow noise scale, and reduced-form price/noise-trading volatility). In the microstructure sketch below, $\sigma_\eta$ induces price noise via $\phi:=\lambda\sigma_\eta$. Overconfidence is modeled as a misperception of private-signal precision: an agent with parameter $k$ uses perceived idiosyncratic variance $\sigma_\epsilon^2/k$ in belief updating (equivalently, perceived precision $k/\sigma_\epsilon^2$).
+
+\subsection{Static Benchmark}
+
+In this static benchmark, $\nu\sim \mathcal{N}(0,\sigma_\nu^2)$ is an exogenous noise-demand shock (price level), distinct from the order-flow noise scale $\sigma_\eta$ used in the microstructure sketch (whose induced price-noise volatility is $\phi=\lambda\sigma_\eta$).
+
+As a baseline, consider a static market with fundamental value $v \sim \mathcal{N}(\mu_{v,0},\sigma_{v,0}^2)$. Each investor receives a private signal
+\begin{equation}
+s_i = v + \epsilon_i, \quad \epsilon_i \sim \mathcal{N}(0, \sigma_{\epsilon,0}^2),
+\end{equation}
+and chooses demand $x_i$ for a single risky asset with payoff $v$ at settlement. Investors have \CARA utility
+\begin{equation}
+U_i = -\E\!\left[e^{-\gamma W_i}\mid s_i\right], \quad W_i = w_0 + x_i(v-p),
+\end{equation}
+and take the price impact rule (instantaneous clearing with noise demand)
+\begin{equation}
+p = \lambda \int_0^1 x_i\,di + \nu,\quad \nu \sim \mathcal{N}(0,\sigma_\nu^2).
+\end{equation}
+Under Gaussian beliefs, maximizing \CARA utility is equivalent to maximizing mean minus $(\gamma/2)$ times variance. Let $\tau_{v,0}:=1/\sigma_{v,0}^2$ and let $\tau'_{\epsilon,0}:=k/\sigma_{\epsilon,0}^2$ denote the perceived private-signal precision. Then the (perceived) posterior variance is $\sigma^2_{\text{post}} = 1/(\tau_{v,0}+\tau'_{\epsilon,0})$ and the posterior mean is $\hat v_i = (\tau_{v,0}\mu_{v,0} + \tau'_{\epsilon,0} s_i)/(\tau_{v,0}+\tau'_{\epsilon,0})$. The optimal demand is therefore
+\begin{equation}
+x_i^* = \frac{\hat v_i - p}{\gamma\,\sigma^2_{\text{post}}}.
+\end{equation}
+To make the aggregation step explicit, consider first a finite population of size $N$, with signals $s_i=v+\epsilon_i$ for $i=1,\dots,N$, where $\{\epsilon_i\}_{i=1}^N$ are i.i.d., independent of $v$, with $\E[\epsilon_i]=0$ and $\E[\epsilon_i^2]=\sigma_{\epsilon,0}^2<\infty$, and define the sample average $\bar s_N := \frac{1}{N}\sum_{i=1}^N s_i$.
+Since $\hat v_i$ is affine in $s_i$, the cross-sectional mean belief satisfies
+$
+\frac{1}{N}\sum_{i=1}^N \hat v_i
+=\frac{\tau_{v,0}\mu_{v,0}+\tau'_{\epsilon,0} \bar s_N}{\tau_{v,0}+\tau'_{\epsilon,0}}.
+$
+Under the finite-$N$ clearing rule $p^N=\lambda\big(\frac1N\sum_{i=1}^N x_i\big)+\nu$, the same algebra yields
+\[
+p^N
+= \frac{\lambda \tau'_{\epsilon,0}}{\gamma + \lambda(\tau_{v,0}+\tau'_{\epsilon,0})}\,\bar s_N
+ + \frac{\gamma}{\gamma + \lambda(\tau_{v,0}+\tau'_{\epsilon,0})}\,\nu
+ + \frac{\lambda\tau_{v,0}}{\gamma + \lambda(\tau_{v,0}+\tau'_{\epsilon,0})}\,\mu_{v,0}.
+\]
+Since $\bar s_N=v+\frac1N\sum_{i=1}^N \epsilon_i$, the strong law of large numbers implies $\bar s_N\to v$ almost surely (conditional on $v$, hence also unconditionally) as $N\to\infty$, yielding the mean-field limit price\footnote{A literal continuum model with $\int_0^1 s_i\,di=v$ can be formalized under an ``exact law of large numbers'' framework for a continuum of independent shocks (e.g., via a Fubini extension/Loeb space). We avoid this measure-theoretic detour and adopt the large-$N$ interpretation, consistent with the finite-$N$ particle/limit perspective used later.}
+\begin{equation}
+\begin{aligned}
+p
+&= \frac{\lambda \tau'_{\epsilon,0}}{\gamma + \lambda(\tau_{v,0}+\tau'_{\epsilon,0})}\,v
+ + \frac{\gamma}{\gamma + \lambda(\tau_{v,0}+\tau'_{\epsilon,0})}\,\nu\\
+&\quad + \frac{\lambda\tau_{v,0}}{\gamma + \lambda(\tau_{v,0}+\tau'_{\epsilon,0})}\,\mu_{v,0}.
+\end{aligned}
+\label{eq:static_price}
+\end{equation}
+Equation \eqref{eq:static_price} makes the channel explicit: higher $k$ increases perceived precision $\tau'_{\epsilon,0}$ and therefore strengthens the price response to $v$ while also increasing demand magnitude for a given mispricing.
+
+\paragraph{Notation note.}
+In the static benchmark (Sec.~2.2), $(\mu_{v,0},\sigma_{v,0})$ parameterize the one-shot prior $v\sim\mathcal N(\mu_{v,0},\sigma_{v,0}^2)$ and $\sigma_{\epsilon,0}$ is the one-shot private-signal noise standard deviation in $s_i=v+\epsilon_i$. We retain the ``,0'' subscripts throughout Section~2.2 and its proofs; unsubscripted $(\mu_v,\sigma_v,\sigma_\epsilon,\ldots)$ are reserved for the dynamic model. In the dynamic model (Sec.~2.3), $(\mu_v,\sigma_v)$ denote the drift and instantaneous diffusion volatility of $v_t$ in $dv_t=\mu_v\,dt+\sigma_v\,dW_t$, and $\sigma_\epsilon$ is the diffusion loading on idiosyncratic signal noise in $d\xi_{i,t}=v_t\,dt+\sigma_c\,dU_t+\sigma_\epsilon\,dB_{i,t}$. The benchmarks are comparable but the parameters have different time-aggregation interpretations.
+
+\subsection{Dynamic Mean Field Game Formulation}
+
+\subsubsection{State Dynamics and Mean-Field Coupling}
+
+The fundamental value follows a diffusion
+\begin{equation}
+dv_t = \mu_v\,dt + \sigma_v\,dW_t,
+\end{equation}
+and each investor observes a private signal process
+ \begin{equation}
+ d\xi_{i,t} = v_t dt + \sigma_c\,dU_t + \sigma_\epsilon\,dB_{i,t},
+ \end{equation}
+ where $\{B_{i,t}\}$ are independent across $i$.
+ In the discrete-time implementation on a grid with step size $\Delta t$, we work with the normalized signal increment (we reserve $y_{i,t}$ below for mispricing $\hat v_{i,t}-p_t$):
+ \[
+ z_{i,t}:=\frac{\xi_{i,t+\Delta t}-\xi_{i,t}}{\Delta t}
+ = v_t+\frac{\sigma_c}{\sqrt{\Delta t}}\,\varepsilon^c_t+\frac{\sigma_\epsilon}{\sqrt{\Delta t}}\,\varepsilon^i_{i,t},
+ \qquad \varepsilon^c_t,\varepsilon^i_{i,t}\sim\mathcal N(0,1),
+ \]
+ so $\Var(z_{i,t}\mid v_t)=(\sigma_c^2+\sigma_\epsilon^2)/\Delta t$ and the perceived measurement variance is
+ $R'_i(\Delta t)=(\sigma_c^2+\sigma_\epsilon^2/k_i)/\Delta t$ (Appendix~A). (For $\Delta t=1$, this reduces to
+ $z_{i,t}=v_t+\sigma_c\varepsilon^c_t+\sigma_\epsilon\varepsilon^i_{i,t}$.)
+The market price evolves endogenously through an anchored impact rule:
+\begin{equation}
+dp_t = \kappa (v_t - p_t)\,dt + \lambda \bar u_t\,dt + \phi\,dZ_t,\qquad \bar u_t := \int_0^1 u_{i,t}\,di.
+\label{eq:anchored_impact}
+\end{equation}
+Equation \eqref{eq:anchored_impact} is a reduced-form microstructure: prices mean-revert to fundamentals at rate $\kappa$ (arbitrage/fundamental anchoring), respond to aggregate net trading flow with strength $\lambda$, and are perturbed by aggregate noise $Z_t$ with volatility $\phi$.
+The anchoring term $\kappa(v_t-p_t)$ should be interpreted as reduced-form arbitrage pressure toward the (latent) fundamental $v_t$; it is not assumed that a market maker directly observes $v_t$.
+The mean-field coupling enters through $\bar u_t$.
+In the discrete-time implementation, $u_{i,t}$ is the trading rate induced by inventory adjustments over a decision interval $\Delta t$ (Subsubsection~\ref{subsubsec:timing_stock_flow}).
+
+\paragraph{Microstructure sketch for the anchored impact rule.}
+Equation~\eqref{eq:anchored_impact} can be viewed as a reduced-form limit of competitive
+risk-neutral market making with inventory costs, plus an (exogenous) arbitrage/anchoring flow.
+
+\emph{Linear impact from inventory-averse competitive market makers.}
+Let $Q_t$ denote aggregate net order flow hitting dealers (positive when the public buys),
+and let the representative dealer's inventory be $q_t$, with
+\[
+dq_t = -\,dQ_t, \qquad \text{(dealers take the opposite side of net flow).}
+\]
+Assume dealers are risk-neutral and competitive (zero expected profit), but face a quadratic
+inventory holding cost $\frac{\lambda}{2}q_t^2$.
+A standard myopic quoting / LQ argument implies the midprice is shifted linearly by inventory,
+\[
+p_t \approx \tilde m_t - \lambda q_t,
+\]
+where $\tilde m_t$ is the dealer's ``efficient'' benchmark (e.g., a fast-moving reference level).
+Differentiating and substituting $dq_t=-dQ_t$ gives
+\[
+dp_t \approx d\tilde m_t + \lambda\, dQ_t,
+\]
+so that (in drift form) price changes are \emph{linear} in contemporaneous net flow. Writing
+$dQ_t = \bar u_t\,dt + \sigma_\eta\,dZ_t$ (where $\bar u_t$ is the net order-flow intensity hitting dealers) yields the impact and noise terms
+\[
+dp_t-d\tilde m_t \approx \lambda \bar u_t\,dt + (\lambda\sigma_\eta)\, dZ_t,
+\qquad \phi := \lambda\sigma_\eta.
+\]
+Here $\tilde m_t$ is the dealer's efficient benchmark, $\bar u_t$ is the net order-flow intensity hitting dealers, and $Z_t$ is a Brownian motion; $\sigma_\eta$ is the corresponding order-flow noise scale.
+In the baseline below we explicitly distinguish inventory $x_{i,t}$ from trading rate $u_{i,t}$ (Subsubsection~\ref{subsubsec:timing_stock_flow}); impact in \eqref{eq:anchored_impact} depends on the mean trading rate $\bar u_t$ (equivalently $\lambda\,\Delta\bar x_t$ over a decision interval).
+
+\emph{Anchoring as reduced-form arbitrage pressure.}
+To capture fast arbitrage / fundamental-anchoring, posit an additional ``arbitrage'' flow that
+leans against mispricing,
+\[
+u^{\mathrm{arb}}_t = a\,(v_t - p_t),
+\]
+so total net flow is $\bar u_t + u^{\mathrm{arb}}_t$ at the same impact slope $\lambda$.
+Then
+\[
+dp_t \approx \lambda\big(\bar u_t + a(v_t-p_t)\big)\,dt + (\lambda\sigma_\eta)\,dZ_t
+= \kappa(v_t-p_t)\,dt + \lambda \bar u_t\,dt + \phi\,dZ_t,
+\quad \kappa := \lambda a,
+\]
+which matches the anchored impact specification.
+
+\subsubsection{Equilibrium Price Formation}
+
+We focus on feedback strategies where demand depends on perceived mispricing. Let $\hat v_{i,t}$ denote investor $i$'s Kalman--Bucy estimate of $v_t$ under the \emph{perceived} measurement-noise variance $R'(k)$ (Appendix~A). When $k=1$ this coincides with the true conditional mean $\E[v_t\mid \mathcal F^i_t]$; when $k\ne 1$ it should be interpreted as a \emph{subjective} filter state computed under the investor's misperceived signal precision. Define the mean belief $m_t := \int_0^1 \hat v_{i,t}\,di$. A broad class of (best-response and learning-based) specifications take the form
+\begin{equation}
+x_{i,t} = \Theta_t(\Sigma_{i,t})\bigl(\hat v_{i,t}-p_t\bigr),
+\label{eq:lin_policy}
+\end{equation}
+where $\Sigma_{i,t}$ is the agent's perceived posterior variance.
+\emph{Definition (gain).} For each $t$, $\Theta_t:(0,\infty)\to[0,\infty)$ maps perceived posterior variance to the (shares/\$) sensitivity of demand to mispricing and is weakly decreasing in $\Sigma$ (equivalently increasing in precision $1/\Sigma$). In the myopic \CARA best response, $\Theta_t$ is derived explicitly in Eq.~\eqref{eq:theta_def} and is nonnegative under $\gamma>0$, $\chi\ge0$, and $\sigma^2_{p,i,t}(\Sigma)>0$.
+
+\subsubsection{Timing and stock--flow separation (inventory vs.\ trading rate)}
+\label{subsubsec:timing_stock_flow}
+
+\paragraph{Timing and objects (discrete decision interval $\Delta t$).}
+At each decision date $t$ agents enter with a \emph{pre-trade inventory} $x_{i,t^-}$ (shares) and choose a \emph{post-trade inventory} $x_{i,t}$ (shares). The executed order and trading rate are
+\[
+\Delta x_{i,t} := x_{i,t}-x_{i,t^-},\qquad
+u_{i,t} := \frac{\Delta x_{i,t}}{\Delta t}\quad (\text{shares/time}),\qquad
+\bar u_t := \int_0^1 u_{i,t}\,di.
+\]
+Price changes over $[t,t+\Delta t]$ via \emph{flow-based} impact,
+\[
+\Delta p_{t+\Delta t}
+= \kappa (v_t-p_t)\,\Delta t + \lambda\,\bar u_t\,\Delta t + \phi\sqrt{\Delta t}\,\varepsilon_{t+\Delta t},
+\qquad \varepsilon_{t+\Delta t}\sim\mathcal N(0,1).
+\]
+Equivalently, since $\bar u_t\Delta t = \Delta\bar x_t$ with $\bar x_t:=\int_0^1 x_{i,t}\,di$, the impact term can be written $\lambda\,\Delta\bar x_t$.
+This timing makes explicit that $x$ is a stock (shares) while $u$ is a flow (shares/time), resolving the unit ambiguity when a single symbol is used for both.
+
+\subsubsection{Belief Updating via Kalman Filtering}
+
+Each investor maintains a belief state $(\hat v_{i,t},\Sigma_{i,t})$ where $\hat v_{i,t}$ is the posterior mean of $v_t$ and $\Sigma_{i,t}$ is the perceived posterior variance. In the linear-Gaussian setting above, $(\hat v_{i,t},\Sigma_{i,t})$ satisfy Kalman--Bucy equations driven by the private signal $\xi_{i,t}$. Overconfidence enters by replacing $\sigma_\epsilon^2$ with $\sigma_\epsilon^2/k$ in the perceived filter. We summarize the resulting filter in Appendix~A.
+
+\subsubsection{Objective Functional}
+
+Investor $i$ chooses a post-trade inventory process $(x_{i,t})_{t}$ (shares) on the discrete decision grid.
+Over one step, wealth evolves as
+\[
+W_{i,t+\Delta t} = W_{i,t} + x_{i,t}\,\Delta p_{t+\Delta t} - \frac{\chi}{2}x_{i,t}^2\,\Delta t,
+\qquad \chi>0,
+\]
+where the quadratic term penalizes inventory holding/risk over the interval.
+Rather than solving the full intertemporal exponential-utility control problem, we adopt a bounded-rational \emph{myopic} approximation: at each decision date, the investor solves the one-step certainty-equivalent problem
+\[
+\max_{x_{i,t}}\;
+x_{i,t}\,\mu_{i,t}
+- \frac12\big(\gamma\,\sigma^2_{p,i,t}+\chi\big)x_{i,t}^2\,\Delta t,
+\]
+where
+$\mu_{i,t}:=\E_i[\Delta p_{t+\Delta t}\mid\mathcal F^i_t]=\big(\kappa(\hat v_{i,t}-p_t)+\lambda\bar u_t\big)\Delta t$
+and $\Var_i(\Delta p_{t+\Delta t}\mid\mathcal F^i_t)=\sigma^2_{p,i,t}\Delta t$.
+We treat $\sigma^2_{p,i,t}$ as computed from primitives; in the discrete implementation it includes belief uncertainty through the effective variance term in Section~IV.
+
+\subsubsection{Mean-Field Consistency (Myopic)}
+
+Let $\mu_t$ denote the (possibly random) law of $(\hat v_{i,t},\Sigma_{i,t})$ across agents. Together with \eqref{eq:anchored_impact}, we study a \emph{myopic mean-field consistent} fixed point: (i) given a conjectured mean-field flow $\{\mu_t\}$ (equivalently, moments such as $m_t$), each agent applies the myopic \CARA rule in Section~IV; and (ii) the resulting population law induced by the controlled belief dynamics is consistent with $\{\mu_t\}$. Section~III formalizes the mean-field object and discusses the common-noise aspect induced by $W_t$ and $Z_t$.

@@ -1,0 +1,41 @@
+% Parameter table for model and numerical settings (particle simulations)
+
+\begin{table}[t]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\caption{Model and numerical parameters.}
+\label{tab:params}
+\begin{tabular}{lp{1.8cm}cc}
+\toprule
+\textbf{Parameter} & \textbf{Description} & \textbf{Baseline Value} & \textbf{Units} \\
+\midrule
+\multicolumn{4}{l}{\textit{Static Benchmark (Sec.~2.2)}} \\
+\midrule
+$\mu_{v,0}$ & Prior mean of $v$ & --- & value \\
+$\sigma_{v,0}$ & Prior sd of $v$ & --- & value \\
+$\sigma_{\epsilon,0}$ & Signal-noise sd & --- & value \\
+\midrule
+\multicolumn{4}{l}{\textit{Dynamic Model (Sec.~2.3+)}} \\
+\midrule
+$\gamma$ & Risk aversion & $1.0$ & --- \\
+$\chi$ & Inventory holding cost & $0.05$ & value/(share$^2\cdot$step) \\
+$k$ & Overconfi\-dence (precision scale) & $1.0$, $3.0$ & --- \\
+$\mu_v$ & Fundamental drift (bull/bear) & $\pm 0.02$ & value/step \\
+$\sigma_v$ & Fundamental diffusion vol. & $0.10$ & value/$\sqrt{\text{step}}$ \\
+$\sigma_c$ & Common signal component & $0.10$ & value/$\sqrt{\text{step}}$ \\
+$\sigma_\epsilon$ & Idiosyncratic signal loading & $0.80$ & value/$\sqrt{\text{step}}$ \\
+$\kappa$ & Fundamental anchoring & $0.005$ & 1/step \\
+$\lambda$ & Impact strength & $0.20$ & value/share \\
+$\phi$ & Price/noise-trading volatility & $0.50$ & value/$\sqrt{\text{step}}$ \\
+\midrule
+\multicolumn{4}{l}{\textit{Numerical Parameters}} \\
+\midrule
+$N$ & Number of agents & $200$ & --- \\
+$T$ & Horizon (steps) & $400$ & step \\
+$M$ & Random seeds (replications) & $50$ & --- \\
+$p_0$ & Initial price & $0.0$ & value \\
+$v_0$ & Initial fundamental & $0.0$ & value \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,37 @@
+{
+  "chosen_params": {
+    "kappa": 0.02,
+    "impact": 0.01,
+    "gamma": 0.2,
+    "alpha_u": 0.5,
+    "h0": 5.0,
+    "h1": 5.0
+  },
+  "score": 0.1794830315811115,
+  "score_components": {
+    "A": 0.03935532249252116,
+    "B": 0.0051968681018962955,
+    "persistence_ratio": 1.1031546649806634
+  },
+  "constraints": {
+    "ret_std_baseline": 0.00880031011773766,
+    "demand_std_baseline": 42.65062135009108,
+    "abs_mispricing_mean_baseline": 0.29158909834846264
+  },
+  "baseline_no_learning": {
+    "ret_std": 0.00880031011773766,
+    "abs_mispricing_mean": 0.29158909834846264,
+    "abs_ret_ac1": 0.9230159894942579,
+    "k_mean": 1.0,
+    "k_std": 0.0,
+    "demand_std": 42.65062135009108
+  },
+  "memory_only": {
+    "ret_std": 0.013997178219633956,
+    "abs_mispricing_mean": 0.37162547689528336,
+    "abs_ret_ac1": 0.962371311986779,
+    "k_mean": 2.333078481509689,
+    "k_std": 0.2705049471866828,
+    "demand_std": 120.56804286391207
+  }
+}

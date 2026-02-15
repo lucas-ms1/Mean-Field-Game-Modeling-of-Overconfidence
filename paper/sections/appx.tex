@@ -1,0 +1,155 @@
+% Appendix: Additional Derivations
+
+\section{Kalman--Bucy Filter With Misperceived Signal Precision}
+
+This appendix summarizes the Kalman--Bucy filter used for belief updating in Section~II.
+
+\subsection{State and Observation Equations}
+
+The (unobserved) fundamental evolves as a linear diffusion
+\begin{equation}
+dv_t = \mu_v\,dt + \sigma_v\,dW_t,
+\end{equation}
+and investor $i$ observes a private signal
+\begin{equation}
+d\xi_{i,t} = v_t\,dt + \sigma_c\,dU_t + \sigma_\epsilon\,dB_{i,t},
+\end{equation}
+where $W$, $U$, and $B_i$ are independent Brownian motions and $U$ is common across investors.
+
+\subsection{Filter and Riccati Equation}
+
+Let $\hat v_{i,t}$ and $\Sigma_{i,t}$ denote investor $i$'s Kalman--Bucy belief mean and posterior variance computed under the \emph{perceived} measurement-noise variance $R'_i(k_i)$ below.
+When $k_i=1$, $\hat v_{i,t}$ coincides with the true conditional mean $\E[v_t\mid \mathcal F^i_t]$ and $\Sigma_{i,t}$ with the true conditional variance.
+When $k_i\ne 1$ they are best interpreted as \emph{subjective} filter states under the investor's misspecified noise model.
+
+\subsubsection{Belief-mean SDE and diffusion decomposition}
+The belief state is $(\hat v_{i,t},\Sigma_{i,t})$. Only $\hat v_{i,t}$ is stochastic; $\Sigma_{i,t}$ follows a scalar Riccati ODE.
+Starting from the Kalman--Bucy form
+\begin{equation}\label{eq:kalman_continuous}
+\begin{split}
+d\hat v_{i,t}&=\mu_v\,dt+K_{i,t}\bigl(d\xi_{i,t}-\hat v_{i,t}\,dt\bigr),\\
+K_{i,t}&=\frac{\Sigma_{i,t}}{R'_i},\quad R'_i=\sigma_c^2+\frac{\sigma_\epsilon^2}{k_i}.
+\end{split}
+\end{equation}
+and using the signal SDE $d\xi_{i,t}=v_t\,dt+\sigma_c\,dU_t+\sigma_\epsilon\,dB_{i,t}$, we obtain the explicit diffusion decomposition
+\begin{equation}\label{eq:vhat_diffusion_decomp}
+d\hat v_{i,t}
+=\bigl(\mu_v+K_{i,t}(v_t-\hat v_{i,t})\bigr)\,dt
++K_{i,t}\sigma_c\,dU_t
++K_{i,t}\sigma_\epsilon\,dB_{i,t}.
+\end{equation}
+Thus the belief-mean diffusion has (i) a \emph{common} component $K_{i,t}\sigma_c\,dU_t$ and (ii) an \emph{idiosyncratic} component $K_{i,t}\sigma_\epsilon\,dB_{i,t}$.
+The perceived posterior variance satisfies the Riccati ODE
+\begin{equation}\label{eq:riccati}
+\dot\Sigma_{i,t}=\sigma_v^2-\frac{\Sigma_{i,t}^2}{R'_i},
+\end{equation}
+and carries no diffusion term.
+
+Here $R'_i$ is the \emph{perceived} measurement-noise variance. Overconfidence corresponds to $k_i>1$, i.e., investors treat their signal as more precise than it truly is. The common component $\sigma_c\,dU_t$ prevents the law-of-large-numbers collapse of aggregate signal noise in the continuum limit and is the source of common-noise randomness in Section~III.
+
+The scalar Riccati equation admits an explicit solution and converges exponentially to its steady state:
+\begin{lemma}[Riccati convergence to steady state]
+\label{lem:riccati_convergence}
+Fix $R'_i>0$ and $\sigma_v>0$ and let $\Sigma_t$ solve \eqref{eq:riccati} with $\Sigma_0\ge 0$. Then $\Sigma_t\to \Sigma^*:=\sigma_v\sqrt{R'_i}$ as $t\to\infty$ and there exist constants $C,c>0$ (depending on $\Sigma_0,\sigma_v,R'_i$) such that
+\begin{equation}
+|\Sigma_t-\Sigma^*|\le C e^{-ct},\qquad c=\frac{2\sigma_v}{\sqrt{R'_i}}.
+\end{equation}
+Consequently, the gain $K_t=\Sigma_t/R'_i$ converges exponentially to $K^*=\sigma_v/\sqrt{R'_i}$.
+\end{lemma}
+
+\begin{proof}
+Fix $R'_i>0$ and $\sigma_v>0$ and consider the scalar Riccati ODE \eqref{eq:riccati}:
+\[
+\frac{d\Sigma_t}{dt}=\sigma_v^2-\frac{\Sigma_t^2}{R'_i}.
+\]
+Let $\Sigma^*:=\sigma_v\sqrt{R'_i}$ (the positive equilibrium) and write $a:=\sigma_v/\sqrt{R'_i}$.
+Set $u_t:=\Sigma_t/\Sigma^*$. Then $u_t$ solves
+\[
+\dot u_t = a(1-u_t^2),\qquad u_0=\Sigma_0/\Sigma^*.
+\]
+Define the ratio $\rho_t := \frac{1-u_t}{1+u_t}$ (well-defined since $u_t\ge 0$). Differentiating gives
+\[
+\dot\rho_t = -2a\,\rho_t,
+\]
+hence $\rho_t=\rho\,e^{-2at}$ with $\rho:=\rho_0=\frac{1-u_0}{1+u_0}=\frac{\Sigma^*-\Sigma_0}{\Sigma^*+\Sigma_0}$.
+Solving for $u_t$ yields the explicit solution
+\[
+\Sigma_t=\Sigma^*\,\frac{1-\rho\,e^{-2at}}{1+\rho\,e^{-2at}}.
+\]
+In all cases with $\Sigma_0\ge 0$, the denominator satisfies $1+\rho e^{-2at}>0$ and $\Sigma_t\ge 0$ for all $t$, and
+$\Sigma_t\to \Sigma^*$ as $t\to\infty$ since $e^{-2at}\to 0$.
+
+Moreover,
+\[
+\Sigma_t-\Sigma^*=\Sigma^*\Big(\frac{1-\rho e^{-2at}}{1+\rho e^{-2at}}-1\Big)
+= -\frac{2\Sigma^*\,\rho\,e^{-2at}}{1+\rho e^{-2at}},
+\]
+so the convergence is exponential with rate constant $c=2a=2\sigma_v/\sqrt{R'_i}$. For the prefactor, note:
+if $\rho\ge 0$ (equivalently $\Sigma_0\le \Sigma^*$), then $1+\rho e^{-2at}\ge 1$ and
+\[
+|\Sigma_t-\Sigma^*|\le 2\Sigma^*|\rho|\,e^{-2at}.
+\]
+If $\rho<0$ (equivalently $\Sigma_0>\Sigma^*$), then $1+\rho e^{-2at}\ge 1+\rho = 1-|\rho|$ and
+\[
+|\Sigma_t-\Sigma^*|\le \frac{2\Sigma^*|\rho|}{1-|\rho|}\,e^{-2at}.
+\]
+Thus the claimed bound holds with, e.g., $C:=2\Sigma^*|\rho|$ when $\Sigma_0\le \Sigma^*$ and
+$C:=\frac{2\Sigma^*|\rho|}{1-|\rho|}$ when $\Sigma_0>\Sigma^*$ (both depending only on $\Sigma_0,\sigma_v,R'_i$).
+Since $K_t=\Sigma_t/R'_i$, it follows that
+$K_t\to K^*=\Sigma^*/R'_i=\sigma_v/\sqrt{R'_i}$ at the same exponential rate.
+\end{proof}
+
+\subsection{Steady State}
+
+In steady state, \eqref{eq:riccati} gives
+\begin{equation}
+\Sigma_i^* = \sigma_v\sqrt{R'_i} = \sigma_v\sqrt{\sigma_c^2+\frac{\sigma_\epsilon^2}{k_i}},
+\end{equation}
+and the corresponding steady-state gain is $K_i^* = \Sigma_i^*/R'_i = \sigma_v/\sqrt{R'_i}$.
+Thus larger $k$ increases the Kalman gain and reduces perceived posterior variance, generating more aggressive belief updating and, through the trading rule, larger demand responses to perceived mispricing.
+
+\subsection{Discrete-Time Recursion Used in Simulations}
+
+Section~VI implements a discrete-time Kalman recursion consistent with the continuous-time signal model \eqref{eq:kalman_continuous}--\eqref{eq:vhat_diffusion_decomp}. On a grid with step size $\Delta t>0$, the simulated fundamental evolves as
+\[
+v_{t+1}=v_t+\mu_v\Delta t+\sigma_v\sqrt{\Delta t}\,\varepsilon_{t+1},\qquad \varepsilon_{t+1}\sim\mathcal N(0,1),
+\]
+ and investor $i$ observes a discrete-time signal obtained from the \emph{flow} observation $d\xi_{i,t}$ by taking increments and normalizing by $\Delta t$:
+ \[
+ z_{i,t}:=\frac{\xi_{i,t+\Delta t}-\xi_{i,t}}{\Delta t}
+ =v_t+\frac{\sigma_c}{\sqrt{\Delta t}}\,\varepsilon^c_t+\frac{\sigma_\epsilon}{\sqrt{\Delta t}}\,\varepsilon^i_{i,t},
+ \qquad \varepsilon^c_t,\varepsilon^i_{i,t}\sim\mathcal N(0,1),
+ \]
+ where $\varepsilon^c_t$ is common across investors and $\varepsilon^i_{i,t}$ is idiosyncratic. (With $\Delta t=1$, this reduces to $z_{i,t}=v_t+\sigma_c\varepsilon^c_t+\sigma_\epsilon\varepsilon^i_{i,t}$, matching the implementation.)
+Thus $\Var(z_{i,t}\mid v_t)=(\sigma_c^2+\sigma_\epsilon^2)/\Delta t$; write $R(\Delta t):=(\sigma_c^2+\sigma_\epsilon^2)/\Delta t$ for the objective measurement variance.
+Overconfidence scales only the idiosyncratic component, so the perceived measurement variance for $z_{i,t}$ is
+ \[
+ R'_i(\Delta t)=\frac{\sigma_c^2+\sigma_\epsilon^2/k_i}{\Delta t}.
+ \]
+ Let $(\hat v_{i,t},\Sigma_{i,t})$ denote the posterior mean/variance after processing $z_{i,t}$. The discrete-time Kalman recursion is:
+  \begin{align*}
+   \Sigma^-_{i,t} &= \Sigma_{i,t-1}+\sigma_v^2\Delta t,\\
+  K_{i,t} &= \frac{\Sigma^-_{i,t}}{\Sigma^-_{i,t}+R'_i(\Delta t)},\\
+   \hat v_{i,t} &= \hat v_{i,t-1}+\mu_v\Delta t+K_{i,t}\bigl(z_{i,t}-(\hat v_{i,t-1}+\mu_v\Delta t)\bigr),\\
+   \Sigma_{i,t} &= (1-K_{i,t})\Sigma^-_{i,t}.
+  \end{align*}
+ 
+ Given the mean trading rate $\bar u_t$ (with $\bar u_t\Delta t=\Delta\bar x_t$ under the stock--flow timing), the discrete-time price update (Euler form of \eqref{eq:anchored_impact}) used in the code is
+ \[
+\begin{aligned}
+ p_{t+1}
+ &= p_t+\kappa(v_t-p_t)\Delta t+\lambda \bar u_t\Delta t + \phi \sqrt{\Delta t}\,\varepsilon^\eta_{t+1},\\
+ \varepsilon^\eta_{t+1}&\sim\mathcal N(0,1).
+\end{aligned}
+ \]
+
+\subsection{Price-Augmented Filtering (Robustness Variant)}
+ 
+ Because prices are public and informative under \eqref{eq:anchored_impact}, a fully consistent informational equilibrium would incorporate $p$ into the observation set and solve a joint filtering/fixed-point problem. As a robustness check aligned with the implemented Euler update above, we construct an \emph{implicit} noisy observation of $v_t$ from the realized price increment:
+ \[
+ \tilde v^{(p)}_t
+ := p_t+\frac{(p_{t+1}-p_t)-\lambda \bar u_t\Delta t}{\kappa\Delta t}
+  = v_t+\frac{\phi}{\kappa\sqrt{\Delta t}}\,\varepsilon^\eta_{t+1}.
+  \]
+ Conditional on $\mathcal F_t$, this yields a Gaussian observation of $v_t$ with measurement variance
+ $R_p=\phi^2/(\kappa^2\Delta t)$ (scaled by a factor $\sigma_{p,\mathrm{obs}}^2$ in the code to probe robustness). We then apply an additional Kalman update using $\tilde v^{(p)}_t$ as a measurement (after processing the private signal), holding the state prediction fixed. Table~\ref{tab:price_filter} summarizes the impact of this price-consistent augmentation on the reported $k$-effects.
